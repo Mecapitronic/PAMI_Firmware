@@ -5,6 +5,10 @@
 
 using namespace std;
 
+// defines pins
+#define stepPin 12
+#define dirPin 11
+
 /**
  * Get data from serial
  * Send data in a queue for the other thread to compute
