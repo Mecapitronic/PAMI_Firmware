@@ -2,12 +2,10 @@
 #define MAIN_H
 
 #include <Arduino.h>
+#include "pin.h"
 
 using namespace std;
 
-// defines pins
-#define stepPin 12
-#define dirPin 11
 
 /**
  * Get data from serial
