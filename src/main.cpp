@@ -11,7 +11,7 @@ void setup()
     }
 
     Serial.end();
-    Serial.begin(115200);
+    Serial.begin(921600);
     delay(1000);
     Serial.println("PAMI Firmware");
     
@@ -21,15 +21,17 @@ void setup()
 
 
     // Sets the two stepper pins as Outputs
-    pinMode(ENABLE, OUTPUT);
-    pinMode(MS1, OUTPUT);
-    pinMode(MS2, OUTPUT);
+    pinMode(ENABLE_G, OUTPUT);
+    pinMode(ENABLE_D, OUTPUT);
+    //pinMode(MS1, OUTPUT);
+    //pinMode(MS2, OUTPUT);
     pinMode(STEP_D, OUTPUT);
     pinMode(DIR_D, OUTPUT);
     pinMode(STEP_G, OUTPUT);
     pinMode(DIR_G, OUTPUT);
 
-    digitalWrite(ENABLE,HIGH);
+    digitalWrite(ENABLE_G,LOW);
+    digitalWrite(ENABLE_D,LOW);
 
     /* Task function. */
     /* name of task. */
@@ -65,23 +67,29 @@ void Task1code(void *pvParameters)
             }
 
             digitalWrite(DIR_D, HIGH); // Enables the motor to move in a particular direction
+            digitalWrite(DIR_G, LOW); // Enables the motor to move in a particular direction
             // Makes 200 pulses for making one full cycle rotation
             for (long x = 0; x < 1600; x++)
             {
                 digitalWrite(STEP_D, HIGH);
+                digitalWrite(STEP_G, HIGH);
                 delayMicroseconds(700); // by changing this time delay between the steps we can change the rotation speed
                 digitalWrite(STEP_D, LOW);
+                digitalWrite(STEP_G, LOW);
                 delayMicroseconds(700);
             }
-            delay(500); // One second delay
+            delay(500);
 
             digitalWrite(DIR_D, LOW); // Changes the rotations direction
+            digitalWrite(DIR_G, HIGH); // Changes the rotations direction
             // Makes 400 pulses for making two full cycle rotation
             for (long x = 0; x < 3200; x++)
             {
                 digitalWrite(STEP_D, HIGH);
+                digitalWrite(STEP_G, HIGH);
                 delayMicroseconds(500);
                 digitalWrite(STEP_D, LOW);
+                digitalWrite(STEP_G, LOW);
                 delayMicroseconds(500);
             }
             delay(500);
