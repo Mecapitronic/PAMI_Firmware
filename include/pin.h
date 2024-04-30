@@ -27,4 +27,7 @@
 #define TEAM_BLUE 0
 #define TEAM_YELLOW 1
 
+//#undef Serial
+//#define Serial Serial2
+
 #endif// PIN_H

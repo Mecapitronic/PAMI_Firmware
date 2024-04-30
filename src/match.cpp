@@ -29,4 +29,5 @@ void updateMatchTime(){
         Serial.println("Match Run");
     }
   }
+  vTaskDelay(1);
 }

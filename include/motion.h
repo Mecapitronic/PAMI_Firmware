@@ -8,7 +8,7 @@
 
 #define STEPS_PER_REVOLUTION 200    // Nombre de pas par tour du moteur
 #define WHEEL_DIAMETER_MM 60.0f     // Diamètre de la roue en millimètres
-#define WHEEL_DISTANCE_MM 85.0f     // Distance entre les roues en millimètres
+#define WHEEL_DISTANCE_MM 90.0f     // Distance entre les roues en millimètres
 
 #define MAX_SPEED       10000.0
 #define MAX_ACCELERATION    2000.0
@@ -19,7 +19,7 @@
 #define STOP_SPEED      20000.0
 #define STOP_ACCELERATION   4000.0
 
-#define CENTER_POSITION_MM 50       // Valeur entre l'arriere du robot et le centre des roues en millimètres
+#define CENTER_POSITION_MM 50       // Valeur entre l'arrière du robot et le centre des roues en millimètres
 
 #define MOTION_WAIT 0
 #define MOTION_RUN 1
@@ -42,7 +42,7 @@ struct Pose {
     float getRot() const { return rot; }
 }; 
 
-// Structure pour représenter undéplacement polaire relatif du robot
+// Structure pour représenter un déplacement polaire relatif du robot
 struct PolarMove {
     float rotation1; // Première rotation pour s'aligner vers la cible
     float distance;  // Déplacement linéaire vers la cible

@@ -110,14 +110,15 @@ void turn(float _angle){
 }
 
 void updateMotors(){
-  updateMatchTime();
-  if(getMatchState() != PAMI_STOP){
-    enableMotors();
+  //updateMatchTime();
+  //if(getMatchState() != PAMI_STOP){
+    //enableMotors();
     motor_D.run();
     motor_G.run();
-  }
-  else if (getMatchState() == PAMI_STOP)
-    disableMotors();
+    //vTaskDelay(1);
+  //}
+  //else if (getMatchState() == PAMI_STOP)
+  //  disableMotors();
 }
 
 void setCurrentY(float _y){
@@ -147,8 +148,10 @@ void processMove(){
 
   Serial.println("Processing Move...");
   while(motor_D.isRunning() || motor_G.isRunning()){
-    updateMotors();
-    if (opponentChecking){
+    
+        vTaskDelay(1);
+    //updateMotors();
+    /*if (opponentChecking){
       if (checkOpponent()){
         Serial.println("Opponent detected");
 
@@ -177,7 +180,7 @@ void processMove(){
         motor_D.move(tempDistance_D);
         motor_G.move(tempDistance_G);
       }
-    }
+    }*/
   }
   Serial.println("Movement ok");
 }
