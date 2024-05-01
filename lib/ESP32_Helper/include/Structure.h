@@ -30,6 +30,13 @@ enum Enable
     ENABLE_NONE
 };
 
+enum TeamColor
+{
+    TEAM_BLUE,
+    TEAM_YELLOW,
+    TEAM_NONE
+};
+
 /**
  * @brief Represents a Cartesian point with x and y as coordinates
  * @param x int16_t

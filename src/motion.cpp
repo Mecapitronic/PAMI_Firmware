@@ -1,5 +1,6 @@
-
 #include "motion.h"
+using namespace Printer;
+using namespace std;
 
 // Position absolue du robot
 Pose currentPose  = {0.0f, 0.0f, 0.0f};
@@ -35,7 +36,7 @@ void initMotion(){
 
   // Configure les pas
   setStepMode(EIGHTH_STEP);
-  // Desactive les moteurs
+  // Désactive les moteurs
   digitalWrite(ENABLE_G,HIGH);
   digitalWrite(ENABLE_D,HIGH);
   // Configure les vitesses et accelerations
@@ -110,15 +111,8 @@ void turn(float _angle){
 }
 
 void updateMotors(){
-  //updateMatchTime();
-  //if(getMatchState() != PAMI_STOP){
-    //enableMotors();
     motor_D.run();
     motor_G.run();
-    //vTaskDelay(1);
-  //}
-  //else if (getMatchState() == PAMI_STOP)
-  //  disableMotors();
 }
 
 void setCurrentY(float _y){
@@ -146,14 +140,16 @@ void processMove(){
   long tempDistance_D = 0;
   long tempDistance_G = 0;
 
-  Serial.println("Processing Move...");
+  println("Processing Move...");
   while(motor_D.isRunning() || motor_G.isRunning()){
     
         vTaskDelay(1);
+
+        //TODO : detection
     //updateMotors();
     /*if (opponentChecking){
       if (checkOpponent()){
-        Serial.println("Opponent detected");
+        println("Opponent detected");
 
         tempDistance_D = motor_D.distanceToGo();
         tempDistance_G = motor_G.distanceToGo();
@@ -171,7 +167,7 @@ void processMove(){
         while(motor_D.isRunning() || motor_G.isRunning()) updateMotors();
         while(checkOpponent()){
           updateMatchTime();
-          Serial.println ("Opponent still here");
+          println ("Opponent still here");
         }
 
         setAcceleration(MAX_ACCELERATION);
@@ -182,7 +178,7 @@ void processMove(){
       }
     }*/
   }
-  Serial.println("Movement ok");
+  println("Movement ok");
 }
 
 long convertDistToStep(float _dist) {

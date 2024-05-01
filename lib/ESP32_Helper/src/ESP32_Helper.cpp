@@ -11,7 +11,8 @@ uint16_t indexSeparator = 0;
 const int Serial_Read_Buffer = 64;
 char readBuffer[Serial_Read_Buffer];
 Command cmdTmp;
-std::queue<Command> awaitingCommand;
+//std::queue<Command> awaitingCommand;
+QueueHandle_t awaitingCommand = NULL;
 Preferences preferences;
 
 void resetVar()
@@ -40,6 +41,12 @@ String convertToString(char* a, int size)
 
 void ESP32_Helper(int baud_speed, Enable printEnable, Level printLvl, Enable debugEnable)
 {
+    awaitingCommand = xQueueCreate(100, sizeof(Command));
+    
+    if (awaitingCommand == NULL)
+    {
+        SERIAL_DEBUG.println("Error creating the queue : awaitingCommand");
+    }
     //SERIAL_DEBUG.begin(baud_speed);
     //if (SERIAL_DEBUG.available() > 0)
     //{
@@ -140,8 +147,9 @@ void UpdateSerial(char tmpChar)
                 }
                 else
                 {
-                    // If command is not for Lib, we sent it to the main
-                    awaitingCommand.push(cmdTmp);
+                    // If command is not for Lib, we sent it to the main                    
+                    xQueueSend(awaitingCommand, &cmdTmp, 0);
+                    //awaitingCommand.push(cmdTmp);
                 }
                 resetVar();
             }
@@ -158,7 +166,7 @@ void UpdateSerial(char tmpChar)
     #endif
 }
 
-bool HasWaitingCommand() { return awaitingCommand.size() > 0; }
+bool HasWaitingCommand() { return uxQueueMessagesWaiting(awaitingCommand) > 0; }
 
 Command GetCommand()
 {
@@ -166,8 +174,16 @@ Command GetCommand()
     cmd.cmd = "";
     if (HasWaitingCommand())
     {
-        cmd = awaitingCommand.front();
-        awaitingCommand.pop();
+        if (xQueueReceive(awaitingCommand, &cmd, portTICK_PERIOD_MS * 0))
+        {
+            return cmd;
+        }
+        else
+        {
+            cmd.cmd = "";
+        }
+        //cmd = awaitingCommand.front();
+        //awaitingCommand.pop();
         //print("POP", cmd);
     }
     return cmd;

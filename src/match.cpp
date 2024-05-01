@@ -1,33 +1,59 @@
 #include "match.h"
 
-long elapsedTime  = 0;
-long startTime    = 0;
+long elapsedTime = 0;
+long startTime = 0;
 
 int matchState = MATCH_WAIT;
 
-int getMatchState(){
+int getMatchState()
+{
     return matchState;
 }
-void setMatchState(int _state){
+
+void setMatchState(int _state)
+{
     matchState = _state;
 }
-void startMatch(){
+
+void startMatch()
+{
     startTime = millis();
     matchState = MATCH_BEGIN;
+    println("Match Begin");
 }
-void updateMatchTime(){
-  if(getMatchState() == MATCH_BEGIN || getMatchState() == PAMI_RUN){
-    elapsedTime = millis() - startTime ;
-    if(elapsedTime>= TIME_END_MATCH)
+
+void updateMatch()
+{
+    if(getMatchState() == MATCH_WAIT)
     {
-        setMatchState(PAMI_STOP);
-        Serial.println("Match End");
+        // Wait start of match
     }
-    else if(elapsedTime>= TIME_START_MATCH && getMatchState() == MATCH_BEGIN)
+
+    if (getMatchState() == MATCH_BEGIN)
     {
-        setMatchState(PAMI_RUN);
-        Serial.println("Match Run");
+        // Match running
+        elapsedTime = millis() - startTime;
+        if (elapsedTime >= TIME_START_PAMI)
+        {
+            setMatchState(PAMI_RUN);
+            println("PAMI Run");
+        }
     }
-  }
-  vTaskDelay(1);
+
+    if (getMatchState() == PAMI_RUN)
+    {
+        // PAMI running
+        elapsedTime = millis() - startTime;
+    
+        if (elapsedTime >= TIME_END_PAMI)
+        {
+            setMatchState(PAMI_STOP);
+            println("Match End");
+        }
+    }
+
+    if(getMatchState() == PAMI_STOP)
+    {
+        // End of match
+    }
 }

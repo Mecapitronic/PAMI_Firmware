@@ -1,10 +1,12 @@
 #ifndef MATCH_H
 #define MATCH_H
 
-#include "pin.h"
+#include "ESP32_Helper.h"
+using namespace Printer;
+using namespace std;
 
-#define TIME_START_MATCH 5000
-#define TIME_END_MATCH TIME_START_MATCH + 10000
+#define TIME_START_PAMI 5000 // 90000 //TODO
+#define TIME_END_PAMI TIME_START_PAMI + 100000 // 10000 //TODO
 
 #define MATCH_WAIT 0
 #define MATCH_BEGIN 1
@@ -14,6 +16,6 @@
 int getMatchState();
 void setMatchState(int _state);
 void startMatch();
-void updateMatchTime();
+void updateMatch();
 
 #endif// MATCH_H
