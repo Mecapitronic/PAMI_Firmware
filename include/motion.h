@@ -3,9 +3,6 @@
 
 #include <AccelStepper.h>
 #include "pin.h"
-#include "match.h"
-#include "sensors.h"
-#include "ESP32_Helper.h"
 
 #define STEPS_PER_REVOLUTION 200    // Nombre de pas par tour du moteur
 #define WHEEL_DIAMETER_MM 60.0f     // Diamètre de la roue en millimètres

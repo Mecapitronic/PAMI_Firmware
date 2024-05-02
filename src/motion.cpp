@@ -1,5 +1,4 @@
 #include "motion.h"
-using namespace Printer;
 using namespace std;
 
 // Position absolue du robot
@@ -140,9 +139,9 @@ void processMove(){
   long tempDistance_D = 0;
   long tempDistance_G = 0;
 
-  println("Processing Move...");
+  Serial.println("Processing Move...");
   while(motor_D.isRunning() || motor_G.isRunning()){
-    updateMotors();
+    
     vTaskDelay(1);
 
         //TODO : detection
@@ -178,7 +177,7 @@ void processMove(){
       }
     }*/
   }
-  println("Movement ok");
+  Serial.println("Movement ok");
 }
 
 long convertDistToStep(float _dist) {
