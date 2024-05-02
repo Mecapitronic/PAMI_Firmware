@@ -142,8 +142,8 @@ void processMove(){
 
   println("Processing Move...");
   while(motor_D.isRunning() || motor_G.isRunning()){
-    
-        vTaskDelay(1);
+    updateMotors();
+    vTaskDelay(1);
 
         //TODO : detection
     //updateMotors();

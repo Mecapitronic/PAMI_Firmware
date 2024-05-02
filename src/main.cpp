@@ -307,6 +307,16 @@ void Task1code(void *pvParameters)
           println("Motor D accel:", motor_D.acceleration());
           println("Motor G accel:", motor_G.acceleration());
         }
+        if (cmd.cmd.startsWith("Pulse"))
+        {
+          // print("Pulse : ", cmd);
+          if (cmd.size > 0)
+          {
+            motor_D.setMinPulseWidth(cmd.data[0]);
+            motor_G.setMinPulseWidth(cmd.data[0]);
+          }
+          println("setMinPulseWidth:",cmd.data[0]);
+        }
         if (cmd.cmd.startsWith("Go"))
         {
           // print("Go : ", cmd);
@@ -364,7 +374,24 @@ void Task2code(void *pvParameters)
       if (getMatchState() != PAMI_STOP && (motor_D.isRunning() || motor_G.isRunning()))
       {
         enableMotors();
-        updateMotors();
+        /*
+          //println("Motor D:");
+          println(">Dspeed:", motor_D.speed());
+          //println(">Dacceleration:", motor_D.acceleration());
+          println(">DdistanceToGo:", (int)motor_D.distanceToGo());
+          println(">DtargetPosition:", (int)motor_D.targetPosition());
+          println(">DcurrentPosition:", (int)motor_D.currentPosition());
+          //println("computeNewSpeed:",(int)motor_D.computeNewSpeed());
+          //println("-----");
+          //println("Motor G:");
+          println(">Gspeed:", motor_G.speed());
+          //println(">Dacceleration:", motor_G.acceleration());
+          println(">GdistanceToGo:", (int)motor_G.distanceToGo());
+          println(">GtargetPosition:", (int)motor_G.targetPosition());
+          println(">GcurrentPosition:", (int)motor_G.currentPosition());
+          //println("computeNewSpeed:",(int)motor_G.computeNewSpeed());
+          println("-----");
+          */
       }
       else
       {
