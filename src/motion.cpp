@@ -142,8 +142,27 @@ void processMove(){
 
   println("Processing Move...");
   while(motor_D.isRunning() || motor_G.isRunning()){
-    updateMotors();
+    //updateMotors();
     vTaskDelay(1);
+    
+        /*
+          //println("Motor D:");
+          println(">Dspeed:", motor_D.speed());
+          //println(">Dacceleration:", motor_D.acceleration());
+          println(">DdistanceToGo:", (int)motor_D.distanceToGo());
+          println(">DtargetPosition:", (int)motor_D.targetPosition());
+          println(">DcurrentPosition:", (int)motor_D.currentPosition());
+          //println("computeNewSpeed:",(int)motor_D.computeNewSpeed());
+          //println("-----");
+          //println("Motor G:");
+          println(">Gspeed:", motor_G.speed());
+          //println(">Dacceleration:", motor_G.acceleration());
+          println(">GdistanceToGo:", (int)motor_G.distanceToGo());
+          println(">GtargetPosition:", (int)motor_G.targetPosition());
+          println(">GcurrentPosition:", (int)motor_G.currentPosition());
+          //println("computeNewSpeed:",(int)motor_G.computeNewSpeed());
+          println("-----");
+          */
 
         //TODO : detection
     //updateMotors();

@@ -8,7 +8,7 @@
 #include "ESP32_Helper.h"
 
 #define STEPS_PER_REVOLUTION 200    // Nombre de pas par tour du moteur
-#define WHEEL_DIAMETER_MM 60.0f     // Diamètre de la roue en millimètres
+#define WHEEL_DIAMETER_MM 59.7f     // Diamètre de la roue en millimètres
 #define WHEEL_DISTANCE_MM 90.0f     // Distance entre les roues en millimètres
 
 #define MAX_SPEED       10000.0
@@ -97,4 +97,4 @@ void convertToPolar(Pose _target);
 void convertToPolar(float _x, float _y);
 void convertToPolar(float _x, float _y, float _rot);
 
-#endif// MOTION_H
+#endif

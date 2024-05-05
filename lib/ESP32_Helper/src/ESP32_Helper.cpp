@@ -37,10 +37,83 @@ String convertToString(char* a, int size)
     }
     return s;
 }
-}  // namespace
+
+#ifdef WITH_WIFI
+
+void WiFiStationConnected(WiFiEvent_t event, WiFiEventInfo_t info){
+  Serial.println("Connected to " + WiFi.SSID() + " successfully!");
+}
+
+void WiFiGotIP(WiFiEvent_t event, WiFiEventInfo_t info){
+  Serial.print("IP address: ");
+  Serial.println(WiFi.localIP());
+}
+
+void WiFiStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info){
+  //Serial.println("Disconnected from WiFi access point");
+  Serial.print("WiFi lost connection : ");
+  Serial.println((wifi_err_reason_t)info.wifi_sta_disconnected.reason);
+  //Serial.println("Trying to Reconnect");
+  // Begin WiFi
+  WiFi.begin(wifi_ssid, wifi_password);
+}
+#endif
+}
 
 void ESP32_Helper(int baud_speed, Enable printEnable, Level printLvl, Enable debugEnable)
 {
+
+#ifdef WITH_WIFI
+int numPami = 0;
+  WiFi.mode(WIFI_STA);
+
+  Serial.print("AP MAC : ");
+  Serial.println(WiFi.softAPmacAddress());
+  Serial.print("Wifi MAC : ");
+  Serial.println(WiFi.macAddress());
+
+  for (size_t i = 0; i < max_pami; i++)
+  {
+    if (WiFi.softAPmacAddress() == ap_mac_pami[i] || WiFi.macAddress() == wifi_mac_pami[i])
+    {
+      numPami = i+1;
+      Serial.print("Num PAMI : ");
+      Serial.println(numPami);   
+      break;
+    }
+  }
+
+// Set your Static IP address
+IPAddress local_IP(192, 168, 137, 100 + numPami);
+// Set your Gateway IP address
+IPAddress gateway(192, 168, 137, 1);
+
+IPAddress subnet(255, 255, 255, 0);
+//IPAddress primaryDNS(8, 8, 8, 8);   //optional
+//IPAddress secondaryDNS(8, 8, 4, 4); //optional
+
+  // Configures static IP address
+  if (!WiFi.config(local_IP, gateway, subnet))//, primaryDNS, secondaryDNS))
+  {
+    Serial.println("STA Failed to configure");
+  }
+  
+  // delete old config
+  WiFi.disconnect(true);
+  
+  // Events callback (to reconnect)
+  WiFi.onEvent(WiFiStationConnected, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_CONNECTED);
+  //WiFi.onEvent(WiFiGotIP, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_GOT_IP); // No need
+  WiFi.onEvent(WiFiStationDisconnected, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
+
+  // Begin WiFi
+  WiFi.begin(wifi_ssid, wifi_password);
+
+  // time to connect
+  delay(1000);
+#endif
+
+
     awaitingCommand = xQueueCreate(100, sizeof(Command));
     
     if (awaitingCommand == NULL)
@@ -85,13 +158,25 @@ void printHeader()
     println();
 }
 
-void UpdateSerial(char tmpChar)
+void UpdateSerial()
 {
-    #ifdef NO_WIFI
     while (SERIAL_DEBUG.available() > 0)
     {
-        tmpChar = SERIAL_DEBUG.read();
-    #endif
+        char tmpChar = SERIAL_DEBUG.read();
+        ReadData(tmpChar);
+    }
+}
+void UpdateSocket(char tmpChar)
+{
+    while (SERIAL_DEBUG.available() > 0)
+    {
+        char tmpChar = SERIAL_DEBUG.read();
+        ReadData(tmpChar);
+    }
+}
+
+void ReadData(char tmpChar)
+{
         if (indexBuffer < Serial_Read_Buffer)
         {
             readBuffer[indexBuffer++] = tmpChar;
@@ -122,7 +207,7 @@ void UpdateSerial(char tmpChar)
                     }
                 }
 
-                //print("Received", cmdTmp);
+                print("Received", cmdTmp);
 
                 // We first handle if the command is for the Lib
                 if (cmdTmp.cmd == "DebugSteps")
@@ -161,9 +246,6 @@ void UpdateSerial(char tmpChar)
             //SERIAL_DEBUG.flush();
             resetVar();
         }
-    #ifdef NO_WIFI
-    }
-    #endif
 }
 
 bool HasWaitingCommand() { return uxQueueMessagesWaiting(awaitingCommand) > 0; }
@@ -225,4 +307,5 @@ void SaveToPreference(String pref, int value)
     preferences.end();
 }
 
-}  // namespace ESP32_Helper
+
+}

@@ -1,5 +1,8 @@
 #include "Printer.h"
 
+    #ifdef WITH_WIFI
+    WiFiClient client;
+    #endif
 namespace Printer
 {
     void PrintLevel(Level level)
@@ -356,4 +359,4 @@ namespace Printer
         String data = "" + String(p.x) + ":" + String(p.y) + ":" + String(p.z);
         SERIAL_DEBUG.println(data);
     }
-}  // namespace Printer
+}

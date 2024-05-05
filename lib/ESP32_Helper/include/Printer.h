@@ -8,6 +8,10 @@
 #define PRINTER_H
 
 #include "ESP32_Helper.h"
+#ifdef WITH_WIFI
+#include <WiFi.h>
+extern WiFiClient client;
+#endif
 
 #define ENUM_PRINT(p)             \
     case (p):                     \
@@ -20,7 +24,7 @@ namespace Printer
     {
         Level printLevel = LEVEL_VERBOSE;
         Enable printEnable = ENABLE_NONE;
-    }  // namespace
+    }
 
     void PrintLevel(Level level);
     Level PrintLevel();
@@ -80,5 +84,5 @@ namespace Printer
      */
     void plot3D(String varName, Point3D p);
     void plot3Dpy(Point3D p);
-};  // namespace Printer
+}
 #endif

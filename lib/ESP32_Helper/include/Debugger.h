@@ -18,5 +18,5 @@ bool IsEnable();
 void Initialisation();
 bool WaitForAvailableSteps();
 void AddSteps(int16_t steps);
-};  // namespace Debugger
+};
 #endif

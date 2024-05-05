@@ -7,22 +7,39 @@
 #ifndef ESP32_HELPER_H
 #define ESP32_HELPER_H
 
-#include "Structure.h"
-#include "Printer.h"
-#include "Debugger.h"
-#include "Preferences.h"
-
 #ifdef WITH_WIFI
-#include <WebSerial.h>
-#define SERIAL_DEBUG WebSerial
+#include <WiFi.h>
+extern WiFiClient client;
+#define SERIAL_DEBUG client
 #endif
 
 #ifdef NO_WIFI
 #define SERIAL_DEBUG Serial
 #endif
 
+#ifndef SERIAL_DEBUG
+    #define SERIAL_DEBUG Serial
+#endif
+
+#include "Structure.h"
+#include "Printer.h"
+#include "Debugger.h"
+#include "Preferences.h"
+
 namespace ESP32_Helper
 {
+
+const int max_pami = 4;
+
+const String wifi_ssid = "Mecapitronic";
+const String wifi_password = "Geoffroy";
+const String wifi_mac_pami[max_pami] = {"94:3C:C6:38:B2:F4","94:3C:C6:37:83:5C","94:3C:C6:38:BE:E8","00:00:00:00:00:00"};
+
+const String ap_ssid = "MECAPI_PAMI";
+const String ap_mac_pami[max_pami] = {"94:3C:C6:38:B2:F5","94:3C:C6:37:83:5D","94:3C:C6:38:BE:E9","00:00:00:00:00:00"};
+const String ap_password = "Geoffroy"; // Only works when the length of passphrase is >= 8 characters
+
+
 // ESP32 Serial Bauds rates
 // static const unsigned long default_rates[] = {300, 600, 1200, 2400, 4800, 9600, 19200, 38400, 57600, 74880,
 // 115200, 230400, 256000, 460800, 921600, 1843200, 3686400};
@@ -38,7 +55,9 @@ void printHeader();
 /**
  * Check for commands send on debugging serial plugged to a computer
  */
-void UpdateSerial(char tmpChar = '\0');
+void UpdateSerial();
+void UpdateSocket(char tmpChar = '\0');
+void ReadData(char tmpChar = '\0');
 bool HasWaitingCommand();
 Command GetCommand();
 
@@ -60,5 +79,5 @@ int64_t GetTimeNowUs();
 int GetFromPreference(String pref, int defValue=0);
 void SaveToPreference(String pref, int value);
 
-}  // namespace ESP32_Helper
-#endif// ESP32_HELPER_H
+}
+#endif

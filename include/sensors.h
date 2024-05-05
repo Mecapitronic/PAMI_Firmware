@@ -11,4 +11,4 @@ void initSensor();
 bool readSensors(bool setDebug = false);
 bool checkOpponent(uint16_t distance = OPPONENT_DISTANCE_MM);
 
-#endif // SENSORS_H
+#endif

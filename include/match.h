@@ -18,4 +18,4 @@ void setMatchState(int _state);
 void startMatch();
 void updateMatch();
 
-#endif// MATCH_H
+#endif
