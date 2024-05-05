@@ -28,8 +28,7 @@ void updateMatch()
     {
         // Wait start of match
     }
-
-    if (getMatchState() == MATCH_BEGIN)
+    else if (getMatchState() == MATCH_BEGIN)
     {
         // Match running
         elapsedTime = millis() - startTime;
@@ -39,8 +38,7 @@ void updateMatch()
             println("PAMI Run");
         }
     }
-
-    if (getMatchState() == PAMI_RUN)
+    else if (getMatchState() == PAMI_RUN)
     {
         // PAMI running
         elapsedTime = millis() - startTime;
@@ -51,9 +49,12 @@ void updateMatch()
             println("Match End");
         }
     }
-
-    if(getMatchState() == PAMI_STOP)
+    else if(getMatchState() == PAMI_STOP)
     {
         // End of match
+    }
+    else
+    {
+        // Not possible
     }
 }

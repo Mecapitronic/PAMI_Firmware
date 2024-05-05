@@ -2,6 +2,8 @@
 
 using namespace Printer;
 
+int numPami = 0;
+
 namespace ESP32_Helper
 {
 namespace
@@ -44,18 +46,9 @@ void WiFiStationConnected(WiFiEvent_t event, WiFiEventInfo_t info){
   Serial.println("Connected to " + WiFi.SSID() + " successfully!");
 }
 
-void WiFiGotIP(WiFiEvent_t event, WiFiEventInfo_t info){
-  Serial.print("IP address: ");
-  Serial.println(WiFi.localIP());
-}
-
 void WiFiStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info){
-  //Serial.println("Disconnected from WiFi access point");
   Serial.print("WiFi lost connection : ");
   Serial.println((wifi_err_reason_t)info.wifi_sta_disconnected.reason);
-  //Serial.println("Trying to Reconnect");
-  // Begin WiFi
-  WiFi.begin(wifi_ssid, wifi_password);
 }
 #endif
 }
@@ -63,8 +56,9 @@ void WiFiStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info){
 void ESP32_Helper(int baud_speed, Enable printEnable, Level printLvl, Enable debugEnable)
 {
 
+numPami = GetFromPreference("PamiNumber",0);
+
 #ifdef WITH_WIFI
-int numPami = 0;
   WiFi.mode(WIFI_STA);
 
   Serial.print("AP MAC : ");
@@ -72,16 +66,17 @@ int numPami = 0;
   Serial.print("Wifi MAC : ");
   Serial.println(WiFi.macAddress());
 
+if(numPami==0)
+{
   for (size_t i = 0; i < max_pami; i++)
   {
     if (WiFi.softAPmacAddress() == ap_mac_pami[i] || WiFi.macAddress() == wifi_mac_pami[i])
     {
-      numPami = i+1;
-      Serial.print("Num PAMI : ");
-      Serial.println(numPami);   
+      numPami = i+1; 
       break;
     }
   }
+}
 
 // Set your Static IP address
 IPAddress local_IP(192, 168, 137, 100 + numPami);
@@ -103,16 +98,30 @@ IPAddress subnet(255, 255, 255, 0);
   
   // Events callback (to reconnect)
   WiFi.onEvent(WiFiStationConnected, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_CONNECTED);
-  //WiFi.onEvent(WiFiGotIP, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_GOT_IP); // No need
   WiFi.onEvent(WiFiStationDisconnected, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
 
   // Begin WiFi
   WiFi.begin(wifi_ssid, wifi_password);
 
-  // time to connect
-  delay(1000);
+  // time to connect to wifi
+  delay(2000);
+  
+  // time to connect to server
+  
+    if (client.connect("192.168.137.1", 20240))
+    {
+      Serial.println("Connected to server !");
+      println("PAMI : ", numPami, " connected !");
+    }
+    else
+    {
+      Serial.println("Connection to server failed");
+    }
 #endif
 
+
+      Serial.print("Num PAMI : ");
+      Serial.println(numPami);  
 
     awaitingCommand = xQueueCreate(100, sizeof(Command));
     
@@ -163,20 +172,7 @@ void UpdateSerial()
     while (SERIAL_DEBUG.available() > 0)
     {
         char tmpChar = SERIAL_DEBUG.read();
-        ReadData(tmpChar);
-    }
-}
-void UpdateSocket(char tmpChar)
-{
-    while (SERIAL_DEBUG.available() > 0)
-    {
-        char tmpChar = SERIAL_DEBUG.read();
-        ReadData(tmpChar);
-    }
-}
 
-void ReadData(char tmpChar)
-{
         if (indexBuffer < Serial_Read_Buffer)
         {
             readBuffer[indexBuffer++] = tmpChar;
@@ -246,6 +242,7 @@ void ReadData(char tmpChar)
             //SERIAL_DEBUG.flush();
             resetVar();
         }
+    }
 }
 
 bool HasWaitingCommand() { return uxQueueMessagesWaiting(awaitingCommand) > 0; }

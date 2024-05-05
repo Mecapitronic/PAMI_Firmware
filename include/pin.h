@@ -16,13 +16,17 @@
 #define STEP_D      27
 #define DIR_D       14
 
-#define DETECT_1 34
-#define DETECT_2 35
+//#define DETECT_1 21
+//#define DETECT_2 23
+
+// Led Bi-Couleur
+#define LED_1_A 22
+#define LED_1_B 23
 
 // Tirette
-#define PIN_TIRETTE 22
+#define PIN_TIRETTE 12
 // Color
-#define PIN_COLOR 23
+#define PIN_COLOR 21
 
 //#undef Serial
 //#define Serial Serial2

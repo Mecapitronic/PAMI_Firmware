@@ -7,20 +7,28 @@ void setup()
   Serial.end();
   Serial.begin(921600);
   delay(1000);
+  Serial.println();
   Serial.println("PAMI Firmware");
-  
-  // Sets the Sensor pins as Inputs
-  pinMode(DETECT_1, INPUT_PULLUP);
-  pinMode(DETECT_2, INPUT_PULLUP);
 
+  // Sets the Sensor pins as Inputs
+  // pinMode(DETECT_1, INPUT_PULLUP);
+  // pinMode(DETECT_2, INPUT_PULLUP);
+
+  // Tirette
   pinMode(PIN_TIRETTE, INPUT_PULLUP);
+
+  // Switch Color
   pinMode(PIN_COLOR, INPUT_PULLUP);
 
   initMotion();
 
-  ESP32_Helper::ESP32_Helper();
+  // Led Bi-Color
+  pinMode(LED_1_A, OUTPUT);
+  digitalWrite(LED_1_A, LOW);
+  pinMode(LED_1_B, OUTPUT);
+  digitalWrite(LED_1_B, LOW);
 
-  delay(1000);
+  ESP32_Helper::ESP32_Helper();
 
   /* Task function. */
   /* name of task. */
@@ -33,22 +41,61 @@ void setup()
   xTaskCreatePinnedToCore(Task2code, "Task2", 20000, NULL, 5, &Task2, 1);
 }
 
+bool useBlink = true;
+int ledState = LOW;
+unsigned long previousMillisLED = 0;
+unsigned long intervalLED = 1000;
+unsigned long currentMillisLED = 0;
+
 void loop()
 {
-  // Do not put code in the loop() when using freeRTOS.
-  // loop() is the only task that is guaranteed to not be ran per tasking iteration.
-  //delay(1000);
+  updateMatch();
+  if (getMatchState() != PAMI_STOP && (motor_D.isRunning() || motor_G.isRunning()))
+  {
+    enableMotors();
+    updateMotors();
+  }
+  else
+  {
+    disableMotors();
+  }
 
-      updateMatch();
-      if (getMatchState() != PAMI_STOP && (motor_D.isRunning() || motor_G.isRunning()))
-      {
-        enableMotors();
-        updateMotors();
-      }
+  if (useBlink)
+  {
+    currentMillisLED = millis();
+    if (currentMillisLED - previousMillisLED >= intervalLED)
+    {
+      previousMillisLED = currentMillisLED;
+      if (ledState == LOW)
+        ledState = HIGH;
       else
+        ledState = LOW;
+      if (teamColor == TEAM_BLUE)
       {
-        disableMotors();
+        digitalWrite(LED_1_A, LOW);
+        digitalWrite(LED_1_B, ledState);
       }
+      else if (teamColor == TEAM_YELLOW)
+      {
+        digitalWrite(LED_1_B, LOW);
+        digitalWrite(LED_1_A, ledState);
+      }
+    }
+  }
+  else if (ledState == LOW)
+  {
+    ledState = HIGH;
+    if (teamColor == TEAM_BLUE)
+    {
+      digitalWrite(LED_1_A, LOW);
+      digitalWrite(LED_1_B, ledState);
+    }
+    else if (teamColor == TEAM_YELLOW)
+    {
+      digitalWrite(LED_1_B, LOW);
+      digitalWrite(LED_1_A, ledState);
+    }
+  }
 }
 
 // Note the 1 Tick delay, this is need  so the watchdog doesn't get confused
@@ -61,154 +108,144 @@ void Task1code(void *pvParameters)
     try
     {
       // Attente du démarrage du match par la tirette
-      if(getMatchState() == MATCH_WAIT)
+      if (getMatchState() == MATCH_WAIT)
       {
         TeamColor teamColorTmp = (TeamColor)digitalRead(PIN_COLOR);
+
         if (teamColorTmp != teamColor)
         {
-          if(teamColorTmp == TEAM_BLUE)
-            println("Color Team BLUE");
-          else if (teamColorTmp == TEAM_YELLOW)
-            println("Color Team YELLOW");
+          PrintTeamColor(teamColorTmp);
           teamColor = teamColorTmp;
+
+          // Save Y position and orientation
+          setCurrentY(CENTER_POSITION_MM);
+          setCurrentRot(270);
+          if (teamColor == TEAM_BLUE)
+          {
+            if (numPami == 1)
+              setCurrentX(0); // TODO position X
+            else if (numPami == 2)
+              setCurrentX(0); // TODO position X
+            else if (numPami == 3)
+              setCurrentX(0); // TODO position X
+            else if (numPami == 4)
+              setCurrentX(0); // TODO position X
+            else
+              println("ERROR robot number");
+          }
+          else if (teamColor == TEAM_YELLOW)
+          {
+            if (numPami == 1)
+              setCurrentX(0); // TODO position X
+            else if (numPami == 2)
+              setCurrentX(0); // TODO position X
+            else if (numPami == 3)
+              setCurrentX(0); // TODO position X
+            else if (numPami == 4)
+              setCurrentX(0); // TODO position X
+            else
+              println("ERROR robot number");
+          }
+          setMaxSpeed(MAX_SPEED);
+          setAcceleration(MAX_ACCELERATION);
         }
-        
-        Enable tiretteTmp = (Enable)digitalRead(PIN_TIRETTE);
+
+        Enable tiretteTmp = (Enable)!digitalRead(PIN_TIRETTE);
         if (tiretteTmp != tirette)
         {
-          if(tirette == ENABLE_NONE)
+          if (tirette == ENABLE_NONE)
           {
-            if(tiretteTmp == ENABLE_TRUE)
-              println("Tirette Présente au démarrage");
-            else if (tiretteTmp == ENABLE_FALSE)
-              println("Tirette Absente au démarrage");
-          }
-          else
-          {
-            if(tiretteTmp == ENABLE_TRUE)
+            if (tiretteTmp == ENABLE_TRUE)
             {
-                  println("Tirette Insérée");
-                  // Datum at low Speed
-                  setMaxSpeed(DATUM_SPEED);
-                  setAcceleration(DATUM_ACCELERATION);
-                  // Datum Y
-                  go(-100);
-                  // Save Y position and orientation
-                  setCurrentY(CENTER_POSITION_MM);
-                  setCurrentRot(270);
-
-                  if (teamColor == TEAM_BLUE)
-                  {
-                    // Orientate robot
-                    goTo(0, 80, 0);
-                    go(-100);
-                    // SaveX position and orientation
-                    setCurrentX(1050 + CENTER_POSITION_MM);
-                    setCurrentRot(0);
-/*
-                    if (numPami == 1)
-                      goTo(1120, 80, 270); // Go to safe position
-                    else if (numPami == 2)
-                      goTo(1120 + 130, 80, 270); // Go to safe position
-                    else if (numPami == 3)
-                      goTo(1120 + 260, 80, 270); // Go to safe position
-                    else
-                      println("ERROR robot number");*/
-                  }
-                  else if (teamColor == TEAM_YELLOW)
-                  {
-                    goTo(0, 80, 180);
-                    go(-100);
-                    // SaveX position and orientation
-                    setCurrentX(1950 - CENTER_POSITION_MM);
-                    setCurrentRot(180);
-/*
-                    if (numPami == 1)
-                      goTo(1880, 80, 270); // Go to safe position
-                    else if (numPami == 2)
-                      goTo(1880 - 130, 80, 270); // Go to safe position
-                    else if (numPami == 3)
-                      goTo(1880 - 260, 80, 270); // Go to safe position
-                    else
-                      println("ERROR robot number");
-                      */
-                  }
-                  setMaxSpeed(MAX_SPEED);
-                  setAcceleration(MAX_ACCELERATION);                
+              println("Tirette Présente au démarrage");
+              intervalLED = 500;
             }
             else if (tiretteTmp == ENABLE_FALSE)
             {
-                println("Tirette Enlevée");
-                startMatch();
+              println("Tirette Absente au démarrage");
+              intervalLED = 200;
+            }
+          }
+          else
+          {
+            if (tiretteTmp == ENABLE_TRUE)
+            {
+              println("Tirette Insérée");
+              intervalLED = 500;
+            }
+            else if (tiretteTmp == ENABLE_FALSE)
+            {
+              println("Tirette Enlevée");
+              intervalLED = 1000;
+              startMatch();
             }
           }
           tirette = tiretteTmp;
         }
       }
-      
+
       // Match en cours
-      if(getMatchState() == MATCH_BEGIN)
+      if (getMatchState() == MATCH_BEGIN)
       {
       }
 
       // Démarrage des PAMI // TODO : change values of points
-      if(getMatchState() == PAMI_RUN)
-      {        
-          setOpponentChecking(true);
-          //if (numPami == 1)
+      if (getMatchState() == PAMI_RUN)
+      {
+        setOpponentChecking(true);
+        // if (numPami == 1)
+        {
+          if (teamColor == TEAM_BLUE)
           {
-            if (teamColor == TEAM_BLUE)
-            {
-              goTo(750, 180);
-              setOpponentChecking(false);
-              goTo(750, 0);
-            }
-            else
-            {
-              goTo(3000 - 750, 180);
-              setOpponentChecking(false);
-              goTo(3000 - 750, 0);
-            }
+            goTo(750, 180);
+            setOpponentChecking(false);
+            goTo(750, 0);
           }
-          //else if (numPami == 2)
+          else
           {
-            if (teamColor == TEAM_BLUE)
-            {
-              goTo(1200, 300);
-              goTo(600, 300);
-              setOpponentChecking(false);
-              goTo(400, 300);
-            }
-            else
-            {
-              goTo(3000 - 1200, 300);
-              goTo(3000 - 600, 300);
-              setOpponentChecking(false);
-              goTo(3000 - 400, 300);
-            }
+            goTo(3000 - 750, 180);
+            setOpponentChecking(false);
+            goTo(3000 - 750, 0);
           }
-          //else if (numPami == 3)
+        }
+        // else if (numPami == 2)
+        {
+          if (teamColor == TEAM_YELLOW)
           {
-            if (teamColor == TEAM_BLUE)
-            {
-              goTo(1350, 450);
-              goTo(400, 550);
-              setOpponentChecking(false);
-              goTo(0, 550);
-            }
-            else
-            {
-              goTo(3000 - 1350, 450);
-              goTo(3000 - 400, 550);
-              setOpponentChecking(false);
-              goTo(3000 - 0, 550);
-            }
+            goTo(1200, 300);
+            goTo(600, 300);
+            setOpponentChecking(false);
+            goTo(400, 300);
           }
+          else
+          {
+            goTo(3000 - 1200, 300);
+            goTo(3000 - 600, 300);
+            setOpponentChecking(false);
+            goTo(3000 - 400, 300);
+          }
+        }
+        // else if (numPami == 3)
+        {
+          if (teamColor == TEAM_BLUE)
+          {
+            goTo(1350, 450);
+            goTo(400, 550);
+            setOpponentChecking(false);
+            goTo(0, 550);
+          }
+          else
+          {
+            goTo(3000 - 1350, 450);
+            goTo(3000 - 400, 550);
+            setOpponentChecking(false);
+            goTo(3000 - 0, 550);
+          }
+        }
       }
 
-      
       // Arrêt des PAMI et fin du match
-      if(getMatchState() == PAMI_STOP)
+      if (getMatchState() == PAMI_STOP)
       {
       }
 
@@ -217,6 +254,17 @@ void Task1code(void *pvParameters)
       {
         Command cmd = ESP32_Helper::GetCommand();
 
+        if (cmd.cmd.startsWith("PamiNumber"))
+        {
+          // print("Pami : ", cmd);
+          if (cmd.size > 0)
+          {            
+            print("Changing Num PAMI from : ", numPami);
+            println(" to : ",cmd.data[0]);  
+            ESP32_Helper::SaveToPreference("PamiNumber",cmd.data[0]);
+            ESP.restart();
+          }
+        }
         if (cmd.cmd.startsWith("Speed"))
         {
           // print("Speed : ", cmd);
@@ -241,13 +289,17 @@ void Task1code(void *pvParameters)
             motor_D.setMinPulseWidth(cmd.data[0]);
             motor_G.setMinPulseWidth(cmd.data[0]);
           }
-          println("setMinPulseWidth:",cmd.data[0]);
+          println("setMinPulseWidth:", cmd.data[0]);
         }
         if (cmd.cmd.startsWith("Go"))
         {
           // print("Go : ", cmd);
-          if (cmd.size > 0)
+          if (cmd.size == 1)
             go(cmd.data[0]);
+          if (cmd.size == 2)
+            goTo(cmd.data[0], cmd.data[1]);
+          if (cmd.size == 3)
+            goTo(cmd.data[0], cmd.data[1], cmd.data[2]);
         }
         if (cmd.cmd.startsWith("Turn"))
         {
@@ -285,10 +337,12 @@ void Task1code(void *pvParameters)
   }
 }
 
-
 unsigned long previousMillisWifi = 0;
 unsigned long previousMillisServer = 0;
-unsigned long interval = 5000;
+unsigned long intervalWifi = 5000;
+unsigned long intervalServer = 5000;
+unsigned long currentMillisWifi = 0;
+unsigned long currentMillisServer = 0;
 
 // Note the 1 Tick delay, this is need so the watchdog doesn't get confused
 void Task2code(void *pvParameters)
@@ -299,44 +353,36 @@ void Task2code(void *pvParameters)
   {
     try
     {
-
-
- unsigned long currentMillis = millis();
-  // if WiFi is down, try reconnecting every CHECK_WIFI_TIME seconds
-  if ((WiFi.status() != WL_CONNECTED) && (currentMillis - previousMillisWifi >=interval)) {
-    Serial.print(millis());
-    Serial.println("Reconnecting to WiFi...");
-    WiFi.disconnect();
-    WiFi.reconnect();
-    previousMillisWifi = currentMillis;
-  }
-
-  if(WiFi.status() == WL_CONNECTED)
-  {
-    if(!client.connected() && (currentMillis - previousMillisServer >=interval))
-    {
-      client.stop();
-      if (client.connect("192.168.137.1", 20240))
-      {
-        Serial.println("Connected to server !");        
-      }
-      else
-      {
-        Serial.println("Connection to server failed");
-      }      
-      previousMillisServer = currentMillis;
-    }
-  }
-
-
-#ifdef NO_WIFI
       ESP32_Helper::UpdateSerial();
-#endif
 
-#ifdef WITH_WIFI
-      ESP32_Helper::UpdateSocket();
-#endif
+      currentMillisWifi = millis();
+      // if WiFi is down, try reconnecting every CHECK_WIFI_TIME seconds
+      if ((WiFi.status() != WL_CONNECTED) && (currentMillisWifi - previousMillisWifi >= intervalWifi))
+      {
+        Serial.println("Reconnecting to WiFi...");
+        //WiFi.disconnect();
+        WiFi.reconnect();
+        previousMillisWifi = currentMillisWifi;
+      }
 
+      currentMillisServer = millis();
+      if (WiFi.status() == WL_CONNECTED)
+      {
+        if (!client.connected() && (currentMillisServer - previousMillisServer >= intervalServer))
+        {
+          client.stop();
+          if (client.connect("192.168.137.1", 20240))
+          {
+            Serial.println("Connected to server !");
+            println("PAMI : ", numPami, " connected !");
+          }
+          else
+          {
+            Serial.println("Connection to server failed");
+          }
+          previousMillisServer = currentMillisServer;
+        }
+      }
     }
     catch (std::exception const &e)
     {
@@ -344,5 +390,6 @@ void Task2code(void *pvParameters)
       Serial.println(e.what());
     }
     vTaskDelay(1);
+    // vTaskDelay(10 / portTICK_PERIOD_MS);
   }
 }

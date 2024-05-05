@@ -15,6 +15,8 @@ Enable tirette = ENABLE_NONE;
 TaskHandle_t Task1;
 TaskHandle_t Task2;
 
+extern int numPami;
+
 /**
  * Get data from serial
  * Send data in a queue for the other thread to compute

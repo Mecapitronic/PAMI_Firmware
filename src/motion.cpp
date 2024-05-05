@@ -14,7 +14,7 @@ int motionState = MOTION_WAIT;
 
 StepMode currentStepMode = SIXTEENTH_STEP;
 int stepMultiplier = 16;
-float circumferenceMM = WHEEL_DIAMETER_MM * PI;
+float circumferenceMM = WHEEL_DIAMETER_MM * PI; //2 PI r
 
 // Variable Opponent
 bool opponentChecking = false;
@@ -143,26 +143,28 @@ void processMove(){
   println("Processing Move...");
   while(motor_D.isRunning() || motor_G.isRunning()){
     //updateMotors();
+    //PolarPoint p = {currentPose.getX(),currentPose.getY()};
+    //teleplot("Pos",p);
     vTaskDelay(1);
     
-        /*
+        
           //println("Motor D:");
-          println(">Dspeed:", motor_D.speed());
-          //println(">Dacceleration:", motor_D.acceleration());
-          println(">DdistanceToGo:", (int)motor_D.distanceToGo());
-          println(">DtargetPosition:", (int)motor_D.targetPosition());
-          println(">DcurrentPosition:", (int)motor_D.currentPosition());
-          //println("computeNewSpeed:",(int)motor_D.computeNewSpeed());
+          Serial.print(">Dspeed:");Serial.println(motor_D.speed());
+          //print(">Dacceleration:", motor_D.acceleration());
+          Serial.print(">DdistanceToGo:");Serial.println( (int)motor_D.distanceToGo());
+          Serial.print(">DtargetPosition:");Serial.println( (int)motor_D.targetPosition());
+          Serial.print(">DcurrentPosition:");Serial.println( (int)motor_D.currentPosition());
+          //println("computeNewSpeed:"), (int)motor_D.computeNewSpeed());
           //println("-----");
           //println("Motor G:");
-          println(">Gspeed:", motor_G.speed());
-          //println(">Dacceleration:", motor_G.acceleration());
-          println(">GdistanceToGo:", (int)motor_G.distanceToGo());
-          println(">GtargetPosition:", (int)motor_G.targetPosition());
-          println(">GcurrentPosition:", (int)motor_G.currentPosition());
+          Serial.print(">Gspeed:");Serial.println( motor_G.speed());
+          //print(">Dacceleration:");Serial.println( motor_G.acceleration());
+          Serial.print(">GdistanceToGo:");Serial.println( (int)motor_G.distanceToGo());
+          Serial.print(">GtargetPosition:");Serial.println( (int)motor_G.targetPosition());
+          Serial.print(">GcurrentPosition:");Serial.println( (int)motor_G.currentPosition());
           //println("computeNewSpeed:",(int)motor_G.computeNewSpeed());
-          println("-----");
-          */
+          //println("-----");
+          
 
         //TODO : detection
     //updateMotors();

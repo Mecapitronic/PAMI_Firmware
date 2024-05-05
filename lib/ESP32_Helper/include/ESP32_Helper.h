@@ -7,6 +7,8 @@
 #ifndef ESP32_HELPER_H
 #define ESP32_HELPER_H
 
+extern int numPami;
+
 #ifdef WITH_WIFI
 #include <WiFi.h>
 extern WiFiClient client;
@@ -56,8 +58,6 @@ void printHeader();
  * Check for commands send on debugging serial plugged to a computer
  */
 void UpdateSerial();
-void UpdateSocket(char tmpChar = '\0');
-void ReadData(char tmpChar = '\0');
 bool HasWaitingCommand();
 Command GetCommand();
 

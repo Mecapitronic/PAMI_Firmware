@@ -37,6 +37,17 @@ namespace Printer
 
     Enable PrintEnable() { return printEnable; }
 
+    void PrintTeamColor(TeamColor teamColor)
+    {
+            SERIAL_DEBUG.print("PrintTeamColor : ");
+            switch (teamColor)
+            {
+                ENUM_PRINT(TEAM_BLUE);
+                ENUM_PRINT(TEAM_YELLOW);
+                ENUM_PRINT(TEAM_NONE);
+            }
+    }
+
     bool IsPrintable(Level level) { return PrintEnable() == ENABLE_TRUE && PrintLevel() <= level; }
 
     void println(Level level)

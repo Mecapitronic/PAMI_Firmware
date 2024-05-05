@@ -30,7 +30,8 @@ namespace Printer
     Level PrintLevel();
     void PrintEnable(Enable enable);
     Enable PrintEnable();
-
+    void PrintTeamColor(TeamColor teamColor);
+    
     bool IsPrintable();
 
     void println(Level level = LEVEL_VERBOSE);
