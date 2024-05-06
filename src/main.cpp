@@ -59,43 +59,7 @@ void loop()
   {
     disableMotors();
   }
-
-  if (useBlink)
-  {
-    currentMillisLED = millis();
-    if (currentMillisLED - previousMillisLED >= intervalLED)
-    {
-      previousMillisLED = currentMillisLED;
-      if (ledState == LOW)
-        ledState = HIGH;
-      else
-        ledState = LOW;
-      if (teamColor == TEAM_BLUE)
-      {
-        digitalWrite(LED_1_A, LOW);
-        digitalWrite(LED_1_B, ledState);
-      }
-      else if (teamColor == TEAM_YELLOW)
-      {
-        digitalWrite(LED_1_B, LOW);
-        digitalWrite(LED_1_A, ledState);
-      }
-    }
-  }
-  else if (ledState == LOW)
-  {
-    ledState = HIGH;
-    if (teamColor == TEAM_BLUE)
-    {
-      digitalWrite(LED_1_A, LOW);
-      digitalWrite(LED_1_B, ledState);
-    }
-    else if (teamColor == TEAM_YELLOW)
-    {
-      digitalWrite(LED_1_B, LOW);
-      digitalWrite(LED_1_A, ledState);
-    }
-  }
+  Blink();
 }
 
 // Note the 1 Tick delay, this is need  so the watchdog doesn't get confused
@@ -326,6 +290,12 @@ void Task1code(void *pvParameters)
           // println("computeNewSpeed:",(long)motor_G.computeNewSpeed());
           println("-----");
         }
+        if (cmd.cmd.startsWith("Blink"))
+        {
+          // print("Blink : ", cmd);
+          if (cmd.size > 0)
+            useBlink = cmd.data[0];
+        }
       }
     }
     catch (std::exception const &e)
@@ -391,5 +361,45 @@ void Task2code(void *pvParameters)
     }
     vTaskDelay(1);
     // vTaskDelay(10 / portTICK_PERIOD_MS);
+  }
+}
+
+void Blink()
+{  
+  if (useBlink)
+  {
+    currentMillisLED = millis();
+    if (currentMillisLED - previousMillisLED >= intervalLED)
+    {
+      previousMillisLED = currentMillisLED;
+      if (ledState == LOW)
+        ledState = HIGH;
+      else
+        ledState = LOW;
+      if (teamColor == TEAM_BLUE)
+      {
+        digitalWrite(LED_1_A, LOW);
+        digitalWrite(LED_1_B, ledState);
+      }
+      else if (teamColor == TEAM_YELLOW)
+      {
+        digitalWrite(LED_1_B, LOW);
+        digitalWrite(LED_1_A, ledState);
+      }
+    }
+  }
+  else if (ledState == LOW)
+  {
+    ledState = HIGH;
+    if (teamColor == TEAM_BLUE)
+    {
+      digitalWrite(LED_1_A, LOW);
+      digitalWrite(LED_1_B, ledState);
+    }
+    else if (teamColor == TEAM_YELLOW)
+    {
+      digitalWrite(LED_1_B, LOW);
+      digitalWrite(LED_1_A, ledState);
+    }
   }
 }
