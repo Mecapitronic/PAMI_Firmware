@@ -10,7 +10,7 @@ void setup()
   
   initMotion();
 
-  setMaxSpeed(4000);
+  setMaxSpeed(MAX_SPEED);
   setAcceleration(MAX_ACCELERATION);  
 
   delay(1000);
@@ -44,15 +44,13 @@ void Task1code(void *pvParameters)
   {
     try
     {
-
         Serial.println("Go 1");
-        go(3000);
+        go(300);
         delay(1000);
 
         Serial.println("Go 2");
-        go(-1000);
+        go(-300);
         delay(1000);
-        
     }
     catch (std::exception const &e)
     {

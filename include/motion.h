@@ -8,14 +8,8 @@
 #define WHEEL_DIAMETER_MM 60.0f     // Diamètre de la roue en millimètres
 #define WHEEL_DISTANCE_MM 90.0f     // Distance entre les roues en millimètres
 
-#define MAX_SPEED       10000.0
+#define MAX_SPEED       4000.0
 #define MAX_ACCELERATION    2000.0
-
-#define DATUM_SPEED    5000.0
-#define DATUM_ACCELERATION 500.0
-
-#define STOP_SPEED      20000.0
-#define STOP_ACCELERATION   4000.0
 
 #define CENTER_POSITION_MM 50       // Valeur entre l'arrière du robot et le centre des roues en millimètres
 

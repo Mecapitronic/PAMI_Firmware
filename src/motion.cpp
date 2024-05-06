@@ -97,8 +97,8 @@ void disableMotors(){
 
 void go(float _dist){
   long stepValue = convertDistToStep(_dist);
-  motor_G.move(stepValue);
-  motor_D.move(-stepValue);
+  motor_G.move(-stepValue);
+  motor_D.move(stepValue);
   processMove();
 }
 
@@ -140,10 +140,29 @@ void processMove(){
   long tempDistance_G = 0;
 
   Serial.println("Processing Move...");
-  while(motor_D.isRunning() || motor_G.isRunning()){
-    
-    vTaskDelay(1);
+  while(motor_D.isRunning() || motor_G.isRunning())
+  {
 
+    vTaskDelay(1);
+        /*
+          //println("Motor D:");
+          Serial.print(">Dspeed:");Serial.println(motor_D.speed());
+          //print(">Dacceleration:", motor_D.acceleration());
+          Serial.print(">DdistanceToGo:");Serial.println( (int)motor_D.distanceToGo());
+          //Serial.print(">DtargetPosition:");Serial.println( (int)motor_D.targetPosition());
+          //Serial.print(">DcurrentPosition:");Serial.println( (int)motor_D.currentPosition());
+          //println("computeNewSpeed:"), (int)motor_D.computeNewSpeed());
+          //println("-----");
+          //println("Motor G:");
+          Serial.print(">Gspeed:");Serial.println( motor_G.speed());
+          //print(">Dacceleration:");Serial.println( motor_G.acceleration());
+          Serial.print(">GdistanceToGo:");Serial.println( (int)motor_G.distanceToGo());
+          //Serial.print(">GtargetPosition:");Serial.println( (int)motor_G.targetPosition());
+          //Serial.print(">GcurrentPosition:");Serial.println( (int)motor_G.currentPosition());
+          //println("computeNewSpeed:",(int)motor_G.computeNewSpeed());
+          //println("-----");
+          */
+          
         //TODO : detection
     //updateMotors();
     /*if (opponentChecking){

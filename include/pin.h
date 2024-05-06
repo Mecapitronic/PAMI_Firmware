@@ -16,15 +16,4 @@
 #define STEP_D      27
 #define DIR_D       14
 
-#define DETECT_1 34
-#define DETECT_2 35
-
-// Tirette
-#define PIN_TIRETTE 22
-// Color
-#define PIN_COLOR 23
-
-//#undef Serial
-//#define Serial Serial2
-
 #endif// PIN_H
