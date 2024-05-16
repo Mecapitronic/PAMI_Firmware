@@ -302,6 +302,14 @@ namespace Printer
         SERIAL_DEBUG.println(data);
     }
 
+    void teleplot(String varName, PolarPoint polarPoint, int timeStamp, Level level)
+    {
+        if (!IsPrintable(level))
+            return;
+        String data = ">" + varName + ":" + (int)polarPoint.x + ":" + (int)polarPoint.y + ":" + (int)timeStamp + "|xy";
+        SERIAL_DEBUG.println(data);
+    }
+
     void teleplot(String varName, Point points[], uint16_t size, Level level)
     {
         if (!IsPrintable(level))

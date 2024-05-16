@@ -228,7 +228,7 @@ void UpdateSerial()
                 }
                 else
                 {
-                    // If command is not for Lib, we sent it to the main                    
+                    // If command is not for Lib, we sent it to the main
                     xQueueSend(awaitingCommand, &cmdTmp, 0);
                     //awaitingCommand.push(cmdTmp);
                 }
@@ -266,6 +266,11 @@ Command GetCommand()
         //print("POP", cmd);
     }
     return cmd;
+}
+
+int GetNumPami()
+{
+    return numPami;
 }
 
 int64_t GetTimeNowMs()

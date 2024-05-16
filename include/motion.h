@@ -9,15 +9,15 @@
 
 #define STEPS_PER_REVOLUTION 200    // Nombre de pas par tour du moteur
 #define WHEEL_DIAMETER_MM 59.7f     // Diamètre de la roue en millimètres
-#define WHEEL_DISTANCE_MM 90.0f     // Distance entre les roues en millimètres
+#define WHEEL_DISTANCE_MM 87.0f     // Distance entre les roues en millimètres
 
 #define MAX_SPEED       5000.0
-#define MAX_ACCELERATION    2000.0
+#define MAX_ACCELERATION    3000.0
 
 #define STOP_SPEED      20000.0
-#define STOP_ACCELERATION   4000.0
+#define STOP_ACCELERATION   9000.0
 
-#define CENTER_POSITION_MM 50       // Valeur entre l'arrière du robot et le centre des roues en millimètres // TODO position à mesurer
+#define CENTER_POSITION_MM 53       // Valeur entre l'arrière du robot et le centre des roues en millimètres
 
 #define MOTION_WAIT 0
 #define MOTION_RUN 1
@@ -65,8 +65,12 @@ void setStepMode(StepMode mode);
 void enableMotors();
 void disableMotors();
 void setMaxSpeed(float _maxSpeed = MAX_SPEED);
+float getMaxSpeed();
 void setAcceleration(float _acceleration = MAX_ACCELERATION);
+float getAcceleration();
 void updateMotors();
+
+Pose getCurrentPose();
 
 void setCurrentY(float _y);
 void setCurrentX(float _x);
@@ -88,6 +92,8 @@ void turnGo(float _angle, float _dist);
 void goTo(Pose _target);
 void goTo(float _x, float _y);
 void goTo(float _x, float _y, float _rot);
+
+void turnTo(float _x, float _y);
 
 // Converti la position demandée vers le targetPolarMove
 void convertToPolar(Pose _target);

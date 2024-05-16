@@ -30,6 +30,19 @@ void setup()
 
   ESP32_Helper::ESP32_Helper();
 
+  int speedPref = ESP32_Helper::GetFromPreference("Speed",0);
+  int accelPref = ESP32_Helper::GetFromPreference("Accel",0);
+    
+  if(speedPref != 0)
+  {
+    setMaxSpeed(speedPref);
+    println("Speed : ", speedPref);
+  }
+  if(accelPref != 0)
+  {  setAcceleration(accelPref);
+    println("Accel : ", accelPref);
+  }
+
   /* Task function. */
   /* name of task. */
   /* Stack size of task */
@@ -50,7 +63,7 @@ unsigned long currentMillisLED = 0;
 void loop()
 {
   updateMatch();
-  if (getMatchState() != PAMI_STOP && (motor_D.isRunning() || motor_G.isRunning()))
+  if (getMatchState() != PAMI_STOP && getMatchState() != MATCH_END && (motor_D.isRunning() || motor_G.isRunning()))
   {
     enableMotors();
     updateMotors();
@@ -62,6 +75,7 @@ void loop()
   Blink();
 }
 
+int lastMatchTime = 0;
 // Note the 1 Tick delay, this is need  so the watchdog doesn't get confused
 void Task1code(void *pvParameters)
 {
@@ -83,35 +97,33 @@ void Task1code(void *pvParameters)
 
           // Save Y position and orientation
           setCurrentY(CENTER_POSITION_MM);
-          setCurrentRot(270);
-          if (teamColor == TEAM_BLUE)
+          setCurrentRot(90);
+          if (teamColor == TEAM_YELLOW)
           {
             if (numPami == 1)
-              setCurrentX(0); // TODO position X
+              setCurrentX(1102);
             else if (numPami == 2)
-              setCurrentX(0); // TODO position X
+              setCurrentX(1216);
             else if (numPami == 3)
-              setCurrentX(0); // TODO position X
+              setCurrentX(1330);
             else if (numPami == 4)
-              setCurrentX(0); // TODO position X
+              setCurrentX(1444);
             else
               println("ERROR robot number");
           }
-          else if (teamColor == TEAM_YELLOW)
+          else if (teamColor == TEAM_BLUE)
           {
             if (numPami == 1)
-              setCurrentX(0); // TODO position X
+              setCurrentX(1898);
             else if (numPami == 2)
-              setCurrentX(0); // TODO position X
+              setCurrentX(1784);
             else if (numPami == 3)
-              setCurrentX(0); // TODO position X
+              setCurrentX(1670);
             else if (numPami == 4)
-              setCurrentX(0); // TODO position X
+              setCurrentX(1556);
             else
               println("ERROR robot number");
           }
-          setMaxSpeed(MAX_SPEED);
-          setAcceleration(MAX_ACCELERATION);
         }
 
         Enable tiretteTmp = (Enable)!digitalRead(PIN_TIRETTE);
@@ -122,11 +134,13 @@ void Task1code(void *pvParameters)
             if (tiretteTmp == ENABLE_TRUE)
             {
               println("Tirette Présente au démarrage");
+              setMatchMode(MODE_MATCH);
               intervalLED = 500;
             }
             else if (tiretteTmp == ENABLE_FALSE)
             {
               println("Tirette Absente au démarrage");
+              setMatchMode(MODE_TEST);
               intervalLED = 200;
             }
           }
@@ -151,67 +165,118 @@ void Task1code(void *pvParameters)
       // Match en cours
       if (getMatchState() == MATCH_BEGIN)
       {
+        if(lastMatchTime != (int)(getMatchTime()/1000))
+        {
+          println("Match Time : ", (int)(getMatchTime()/1000));
+          lastMatchTime=(int)(getMatchTime()/1000);
+        }
       }
 
       // Démarrage des PAMI // TODO : change values of points
       if (getMatchState() == PAMI_RUN)
       {
         setOpponentChecking(true);
-        // if (numPami == 1)
-        {
-          if (teamColor == TEAM_BLUE)
-          {
-            goTo(750, 180);
-            setOpponentChecking(false);
-            goTo(750, 0);
-          }
-          else
-          {
-            goTo(3000 - 750, 180);
-            setOpponentChecking(false);
-            goTo(3000 - 750, 0);
-          }
-        }
-        // else if (numPami == 2)
+        if (numPami == 1)
         {
           if (teamColor == TEAM_YELLOW)
           {
-            goTo(1200, 300);
-            goTo(600, 300);
+            //goTo(1102, 650);
+            goTo(1102, 150);
+            goTo(763, 150);
             setOpponentChecking(false);
-            goTo(400, 300);
+            goTo(763, 20);
           }
           else
           {
-            goTo(3000 - 1200, 300);
-            goTo(3000 - 600, 300);
+            //goTo(3000 - 1102, 650); // 1 roue tourne plus vite que l'autre = 1 arc de cercle
+            goTo(3000 - 1102, 150);
+            goTo(3000 - 763, 150);
             setOpponentChecking(false);
-            goTo(3000 - 400, 300);
+            goTo(3000 - 763, 20);
           }
         }
-        // else if (numPami == 3)
+        else if (numPami == 2)
         {
-          if (teamColor == TEAM_BLUE)
+          if (teamColor == TEAM_YELLOW)
           {
-            goTo(1350, 450);
-            goTo(400, 550);
+            goTo(1216, 475);
+            float accel = getAcceleration();
+            setAcceleration(2000);
+            float speed = getMaxSpeed();
+            setMaxSpeed(2000);
+            turnTo(450, 475);
+            setAcceleration(accel);
+            setMaxSpeed(speed);
+            goTo(450, 475);
             setOpponentChecking(false);
-            goTo(0, 550);
+            goTo(20, 475);
           }
           else
           {
-            goTo(3000 - 1350, 450);
-            goTo(3000 - 400, 550);
+            goTo(3000 - 1216, 475);
+            float accel = getAcceleration();
+            setAcceleration(2000);
+            float speed = getMaxSpeed();
+            setMaxSpeed(2000);
+            turnTo(3000 - 450, 475);
+            setAcceleration(accel);
+            setMaxSpeed(speed);
+            goTo(3000 - 450, 475);
             setOpponentChecking(false);
-            goTo(3000 - 0, 550);
+            goTo(3000 - 20, 475);
           }
         }
+        else if (numPami == 3)
+        {
+          if (teamColor == TEAM_YELLOW)
+          {
+            goTo(1330, 1400);
+            goTo(400, 1600);
+            setOpponentChecking(false);
+            //goTo(400, 1600);
+            goTo(350, 1650);
+          }
+          else
+          {
+            goTo(3000 - 1330, 1400);
+            goTo(3000 - 400, 1600);
+            setOpponentChecking(false);
+            //goTo(3000 - 400, 1600);
+            goTo(3000 - 350, 1650);
+          }
+        }
+        else if (numPami == 4)
+        {
+          if (teamColor == TEAM_YELLOW)
+          {
+            goTo(1444, 1000);
+            goTo(2500, 1000);
+            setOpponentChecking(false);
+            goTo(2800, 1000);
+          }
+          else
+          {
+            goTo(3000 - 1444, 1000);
+            goTo(3000 - 2500, 1000);
+            setOpponentChecking(false);
+            goTo(3000 - 2800, 1000);
+          }
+        }
+        println("PAMI Stop");
+        setMatchState(PAMI_STOP);
       }
 
-      // Arrêt des PAMI et fin du match
+      // Arrêt des PAMI
       if (getMatchState() == PAMI_STOP)
       {
+        // Wait for end of match
       }
+      
+      // Fin du match
+     if (getMatchState() == MATCH_END)
+     {
+        useBlink = false;
+     }
 
       // Check if we get commands from operator via debug serial
       if (ESP32_Helper::HasWaitingCommand())
@@ -224,8 +289,9 @@ void Task1code(void *pvParameters)
           if (cmd.size > 0)
           {            
             print("Changing Num PAMI from : ", numPami);
-            println(" to : ",cmd.data[0]);  
+            println(" to : ",cmd.data[0]);
             ESP32_Helper::SaveToPreference("PamiNumber",cmd.data[0]);
+            vTaskDelay(500);
             ESP.restart();
           }
         }
@@ -233,7 +299,11 @@ void Task1code(void *pvParameters)
         {
           // print("Speed : ", cmd);
           if (cmd.size > 0)
+          {
             setMaxSpeed(cmd.data[0]);
+            ESP32_Helper::SaveToPreference("Speed",cmd.data[0]);
+            println("Speed : ", getMaxSpeed());
+          }
           println("Motor D speed:", motor_D.speed());
           println("Motor G speed:", motor_G.speed());
         }
@@ -241,7 +311,11 @@ void Task1code(void *pvParameters)
         {
           // print("Accel : ", cmd);
           if (cmd.size > 0)
+          {
             setAcceleration(cmd.data[0]);
+            ESP32_Helper::SaveToPreference("Accel",cmd.data[0]);
+            println("Accel : ", getAcceleration());
+          }
           println("Motor D accel:", motor_D.acceleration());
           println("Motor G accel:", motor_G.acceleration());
         }
@@ -295,6 +369,14 @@ void Task1code(void *pvParameters)
           // print("Blink : ", cmd);
           if (cmd.size > 0)
             useBlink = cmd.data[0];
+          println("Blink : ", useBlink);
+        }
+        if (cmd.cmd.startsWith("stepMultiplier"))
+        {
+          // print("stepMultiplier : ", cmd);
+          if (cmd.size > 0)
+            setStepMode(StepMode(cmd.data[0]));
+          println("stepMultiplier : ", StepMode(cmd.data[0]));
         }
       }
     }
@@ -314,6 +396,10 @@ unsigned long intervalServer = 5000;
 unsigned long currentMillisWifi = 0;
 unsigned long currentMillisServer = 0;
 
+int64_t lastSendSerialTime = millis();
+
+Pose lastPosition = {0, 0, 0};
+
 // Note the 1 Tick delay, this is need so the watchdog doesn't get confused
 void Task2code(void *pvParameters)
 {
@@ -324,6 +410,25 @@ void Task2code(void *pvParameters)
     try
     {
       ESP32_Helper::UpdateSerial();
+
+            if (millis() - lastSendSerialTime > 500)
+            {
+                lastSendSerialTime = millis();
+                Pose p = getCurrentPose();
+
+                if ((int)lastPosition.x != (int)getCurrentPose().x ||
+                    (int)lastPosition.y != (int)getCurrentPose().y ||
+                    (int)(lastPosition.rot) != (int)(getCurrentPose().rot))
+                {
+                  PolarPoint p = {0,0,0,0,0};
+                  p.x = getCurrentPose().x;
+                  p.y = getCurrentPose().y;
+                    teleplot("pos", p, (int)(getCurrentPose().rot), LEVEL_WARN);
+                    lastPosition = getCurrentPose();
+                }
+                // teleplot("mapBoundaries", MapBoundaries, 4, LEVEL_WARN);
+                // teleplot("robot", robot.GetPosition(), LEVEL_WARN);
+            }
 
       currentMillisWifi = millis();
       // if WiFi is down, try reconnecting every CHECK_WIFI_TIME seconds

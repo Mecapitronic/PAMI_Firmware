@@ -35,10 +35,10 @@ const int max_pami = 4;
 
 const String wifi_ssid = "Mecapitronic";
 const String wifi_password = "Geoffroy";
-const String wifi_mac_pami[max_pami] = {"94:3C:C6:38:B2:F4","94:3C:C6:37:83:5C","94:3C:C6:38:BE:E8","00:00:00:00:00:00"};
+const String wifi_mac_pami[max_pami] = {"94:3C:C6:38:B2:F4","94:3C:C6:37:83:5C","94:3C:C6:38:BE:E8","94:3C:C6:38:3E:A0"};
 
 const String ap_ssid = "MECAPI_PAMI";
-const String ap_mac_pami[max_pami] = {"94:3C:C6:38:B2:F5","94:3C:C6:37:83:5D","94:3C:C6:38:BE:E9","00:00:00:00:00:00"};
+const String ap_mac_pami[max_pami] = {"94:3C:C6:38:B2:F5","94:3C:C6:37:83:5D","94:3C:C6:38:BE:E9","94:3C:C6:38:3E:A1"};
 const String ap_password = "Geoffroy"; // Only works when the length of passphrase is >= 8 characters
 
 
@@ -60,6 +60,7 @@ void printHeader();
 void UpdateSerial();
 bool HasWaitingCommand();
 Command GetCommand();
+int GetNumPami();
 
 /**
  * @brief Get the current time with miliseconds precision

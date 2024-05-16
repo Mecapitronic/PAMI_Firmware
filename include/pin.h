@@ -5,8 +5,8 @@
 
 // Pins Motors - Drivers
 
-//#define MS1     
-//#define MS2     
+#define MS1         18
+#define MS2         19
 
 #define ENABLE_G    32
 #define STEP_G      33
@@ -16,7 +16,7 @@
 #define STEP_D      27
 #define DIR_D       14
 
-//#define DETECT_1 21
+#define SHARP_1 34 // GPIO34 = ADC1_6
 //#define DETECT_2 23
 
 // Led Bi-Couleur

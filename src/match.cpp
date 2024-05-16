@@ -4,6 +4,7 @@ long elapsedTime = 0;
 long startTime = 0;
 
 int matchState = MATCH_WAIT;
+int matchMode = MODE_MATCH;
 
 int getMatchState()
 {
@@ -15,11 +16,26 @@ void setMatchState(int _state)
     matchState = _state;
 }
 
+int getMatchMode()
+{
+    return matchMode;
+}
+
+void setMatchMode(int _mode)
+{
+    matchMode = _mode;
+}
+
 void startMatch()
 {
     startTime = millis();
     matchState = MATCH_BEGIN;
     println("Match Begin");
+}
+
+long getMatchTime()
+{
+    return millis() - startTime;
 }
 
 void updateMatch()
@@ -32,24 +48,24 @@ void updateMatch()
     {
         // Match running
         elapsedTime = millis() - startTime;
-        if (elapsedTime >= TIME_START_PAMI)
+        if ((elapsedTime >= TIME_START_PAMI_MATCH && matchMode == MODE_MATCH) || (elapsedTime >= TIME_START_PAMI_TEST && matchMode == MODE_TEST))
         {
             setMatchState(PAMI_RUN);
             println("PAMI Run");
         }
     }
-    else if (getMatchState() == PAMI_RUN)
+    else if ((getMatchState() == PAMI_RUN) || (getMatchState() == PAMI_STOP))
     {
-        // PAMI running
+        // PAMI still running or waiting for end of match
         elapsedTime = millis() - startTime;
-    
-        if (elapsedTime >= TIME_END_PAMI)
+        
+        if ((elapsedTime >= TIME_END_PAMI_MATCH && matchMode == MODE_MATCH) || (elapsedTime >= TIME_END_PAMI_TEST && matchMode == MODE_TEST))
         {
-            setMatchState(PAMI_STOP);
+            setMatchState(MATCH_END);
             println("Match End");
         }
     }
-    else if(getMatchState() == PAMI_STOP)
+    else if(getMatchState() == MATCH_END)
     {
         // End of match
     }
