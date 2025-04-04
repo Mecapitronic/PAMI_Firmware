@@ -23,23 +23,6 @@
 #define MOTION_RUN 1
 #define MOTION_STOP 2
 
-// Structure pour représenter une position et une orientation absolue du robot
-struct Pose {
-    float x; // Position en X (mm)
-    float y; // Position en Y (mm)
-    float rot; // Rotation en degrés
-
-    // Méthodes pour définir les valeurs
-    void setX(float _x) { x = _x; }
-    void setY(float _y) { y = _y; }
-    void setRot(float _rot) { rot = _rot; }
-
-    // Méthodes pour obtenir les valeurs
-    float getX() const { return x; }
-    float getY() const { return y; }
-    float getRot() const { return rot; }
-}; 
-
 // Structure pour représenter un déplacement polaire relatif du robot
 struct PolarMove {
     float rotation1; // Première rotation pour s'aligner vers la cible
@@ -48,7 +31,7 @@ struct PolarMove {
 };
 
 enum StepMode {
-    EIGHTH_STEP,      // MS1 = GND, MS2 = GND
+    EIGHTH_STEP,      // MS1 = GND, MS2 = GND -> Current configuration
     HALF_STEP,        // MS1 = GND, MS2 = VIO
     QUARTER_STEP,     // MS1 = VIO, MS2 = GND
     SIXTEENTH_STEP    // MS1 = VIO, MS2 = VIO
@@ -61,7 +44,6 @@ extern AccelStepper motor_G;
 // Déclaration des fonctions
 
 void initMotion();
-void setStepMode(StepMode mode); 
 void enableMotors();
 void disableMotors();
 void setMaxSpeed(float _maxSpeed = MAX_SPEED);
@@ -70,7 +52,7 @@ void setAcceleration(float _acceleration = MAX_ACCELERATION);
 float getAcceleration();
 void updateMotors();
 
-Pose getCurrentPose();
+PoseF getCurrentPose();
 
 void setCurrentY(float _y);
 void setCurrentX(float _x);
@@ -89,14 +71,14 @@ void turn(float _angle);
 void turnGo(float _angle, float _dist);
 
 // Déplacements absolus
-void goTo(Pose _target);
+void goTo(PoseF _target);
 void goTo(float _x, float _y);
 void goTo(float _x, float _y, float _rot);
 
 void turnTo(float _x, float _y);
 
 // Converti la position demandée vers le targetPolarMove
-void convertToPolar(Pose _target);
+void convertToPolar(PoseF _target);
 void convertToPolar(float _x, float _y);
 void convertToPolar(float _x, float _y, float _rot);
 

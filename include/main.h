@@ -9,8 +9,9 @@ using namespace std;
 #include "pin.h"
 #include "motion.h"
 
-TeamColor teamColor = TEAM_NONE;
-Enable tirette = ENABLE_NONE;
+Team teamColor = Team::TEAM_YELLOW;
+Enable tirette = Enable::ENABLE_NONE;
+int numPami = 0;
 
 TaskHandle_t Task1;
 TaskHandle_t Task2;

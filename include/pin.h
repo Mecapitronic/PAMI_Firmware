@@ -1,34 +1,57 @@
 #ifndef PIN_H
 #define PIN_H
 
-#include <Arduino.h>
+#include <cstddef>
+#include <pins_arduino.h>
+//#include <HardwareSerial.h>
 
-// Pins Motors - Drivers
+//******************** Pins Undefined
+constexpr size_t PIN_10 = 10;
+constexpr size_t PIN_11 = 11;
 
-#define MS1         18
-#define MS2         19
+//******************** Pins UART - Serial
+/* Do we need this ?
+#undef SOC_RX0
+#define SOC_RX0 44
+#undef SOC_TX0
+#define SOC_TX0 43
 
-#define ENABLE_G    32
-#define STEP_G      33
-#define DIR_G       25
+#undef RX1
+#define RX1 18
+#undef TX1
+#define TX1 17
+*/
+//******************** Pins Motors - Drivers
+constexpr size_t PIN_STEP_M1 = 7;
+constexpr size_t PIN_DIR_M1 = 6;
 
-#define ENABLE_D    26
-#define STEP_D      27
-#define DIR_D       14
+constexpr size_t PIN_STEP_M2 = 5;
+constexpr size_t PIN_DIR_M2 = 4;
 
-#define SHARP_1 34 // GPIO34 = ADC1_6
-//#define DETECT_2 23
+constexpr size_t PIN_STEP_M3 = 2;
+constexpr size_t PIN_DIR_M3 = 1;
 
-// Led Bi-Couleur
-#define LED_1_A 22
-#define LED_1_B 23
+constexpr size_t PIN_EN_MCU = 3;
 
-// Tirette
-#define PIN_TIRETTE 12
-// Color
-#define PIN_COLOR 21
+//******************** Pins TwoWire I²C - Otos
 
-//#undef Serial
-//#define Serial Serial2
+#undef SDA
+#define SDA 8
+#undef SCL
+#define SCL 9
+
+//******************** Pins LED - RGB
+constexpr size_t PIN_RGB_LED = 38;
+constexpr size_t PIN_WS2812_LED = 12;
+
+//******************** Pins IHM
+constexpr size_t PIN_MODE = 14;
+constexpr size_t PIN_TEAM = 13;
+constexpr size_t PIN_BAU = 15;
+constexpr size_t PIN_START = 16;
+
+//******************** Pins Selecteur PAMI
+constexpr size_t PIN_PAMI_NUM_1 = 7;
+constexpr size_t PIN_PAMI_NUM_2 = 6;
 
 #endif

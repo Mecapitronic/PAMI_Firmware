@@ -10,28 +10,30 @@ void setup()
   Serial.println();
   Serial.println("PAMI Firmware");
 
-  // Sets the Sensor pins as Inputs
-  // pinMode(DETECT_1, INPUT_PULLUP);
-  // pinMode(DETECT_2, INPUT_PULLUP);
+initSensor();
 
-  // Tirette
-  pinMode(PIN_TIRETTE, INPUT_PULLUP);
+numPami = GetNumPami();
 
-  // Switch Color
-  pinMode(PIN_COLOR, INPUT_PULLUP);
+#ifdef WITH_WIFI
+// Set your Static IP address
+IPAddress local_IP(192, 168, 137, 100 + numPami);
+#endif
 
   initMotion();
+  
+  Serial.print("Num PAMI : ");
+  Serial.println(numPami);  
 
   // Led Bi-Color
-  pinMode(LED_1_A, OUTPUT);
-  digitalWrite(LED_1_A, LOW);
-  pinMode(LED_1_B, OUTPUT);
-  digitalWrite(LED_1_B, LOW);
+  //pinMode(LED_1_A, OUTPUT);
+  //digitalWrite(LED_1_A, LOW);
+  //pinMode(LED_1_B, OUTPUT);
+  //digitalWrite(LED_1_B, LOW);
 
-  ESP32_Helper::ESP32_Helper();
+  ESP32_Helper::Initialisation();
 
-  int speedPref = ESP32_Helper::GetFromPreference("Speed",0);
-  int accelPref = ESP32_Helper::GetFromPreference("Accel",0);
+  int speedPref = preferences.getInt("Speed",0);
+  int accelPref = preferences.getInt("Accel",0);
     
   if(speedPref != 0)
   {
@@ -88,17 +90,17 @@ void Task1code(void *pvParameters)
       // Attente du démarrage du match par la tirette
       if (getMatchState() == MATCH_WAIT)
       {
-        TeamColor teamColorTmp = (TeamColor)digitalRead(PIN_COLOR);
+        Team teamColorTmp = (Team)digitalRead(PIN_TEAM);
 
         if (teamColorTmp != teamColor)
         {
-          PrintTeamColor(teamColorTmp);
+          Printer::PrintTeamColor(teamColorTmp);
           teamColor = teamColorTmp;
 
           // Save Y position and orientation
           setCurrentY(CENTER_POSITION_MM);
           setCurrentRot(90);
-          if (teamColor == TEAM_YELLOW)
+          if (teamColor == Team::TEAM_YELLOW)
           {
             if (numPami == 1)
               setCurrentX(1102);
@@ -111,7 +113,7 @@ void Task1code(void *pvParameters)
             else
               println("ERROR robot number");
           }
-          else if (teamColor == TEAM_BLUE)
+          else
           {
             if (numPami == 1)
               setCurrentX(1898);
@@ -126,18 +128,18 @@ void Task1code(void *pvParameters)
           }
         }
 
-        Enable tiretteTmp = (Enable)!digitalRead(PIN_TIRETTE);
+        Enable tiretteTmp = (Enable)!digitalRead(PIN_START);
         if (tiretteTmp != tirette)
         {
-          if (tirette == ENABLE_NONE)
+          if (tirette == Enable::ENABLE_NONE)
           {
-            if (tiretteTmp == ENABLE_TRUE)
+            if (tiretteTmp == Enable::ENABLE_TRUE)
             {
               println("Tirette Présente au démarrage");
               setMatchMode(MODE_MATCH);
               intervalLED = 500;
             }
-            else if (tiretteTmp == ENABLE_FALSE)
+            else if (tiretteTmp == Enable::ENABLE_FALSE)
             {
               println("Tirette Absente au démarrage");
               setMatchMode(MODE_TEST);
@@ -146,12 +148,12 @@ void Task1code(void *pvParameters)
           }
           else
           {
-            if (tiretteTmp == ENABLE_TRUE)
+            if (tiretteTmp == Enable::ENABLE_TRUE)
             {
               println("Tirette Insérée");
               intervalLED = 500;
             }
-            else if (tiretteTmp == ENABLE_FALSE)
+            else if (tiretteTmp == Enable::ENABLE_FALSE)
             {
               println("Tirette Enlevée");
               intervalLED = 1000;
@@ -178,7 +180,7 @@ void Task1code(void *pvParameters)
         setOpponentChecking(true);
         if (numPami == 1)
         {
-          if (teamColor == TEAM_YELLOW)
+          if (teamColor == Team::TEAM_YELLOW)
           {
             //goTo(1102, 650);
             goTo(1102, 150);
@@ -197,7 +199,7 @@ void Task1code(void *pvParameters)
         }
         else if (numPami == 2)
         {
-          if (teamColor == TEAM_YELLOW)
+          if (teamColor == Team::TEAM_YELLOW)
           {
             goTo(1216, 475);
             float accel = getAcceleration();
@@ -228,7 +230,7 @@ void Task1code(void *pvParameters)
         }
         else if (numPami == 3)
         {
-          if (teamColor == TEAM_YELLOW)
+          if (teamColor == Team::TEAM_YELLOW)
           {
             goTo(1330, 1400);
             goTo(400, 1600);
@@ -247,7 +249,7 @@ void Task1code(void *pvParameters)
         }
         else if (numPami == 4)
         {
-          if (teamColor == TEAM_YELLOW)
+          if (teamColor == Team::TEAM_YELLOW)
           {
             goTo(1444, 1000);
             goTo(2500, 1000);
@@ -283,25 +285,13 @@ void Task1code(void *pvParameters)
       {
         Command cmd = ESP32_Helper::GetCommand();
 
-        if (cmd.cmd.startsWith("PamiNumber"))
-        {
-          // print("Pami : ", cmd);
-          if (cmd.size > 0)
-          {            
-            print("Changing Num PAMI from : ", numPami);
-            println(" to : ",cmd.data[0]);
-            ESP32_Helper::SaveToPreference("PamiNumber",cmd.data[0]);
-            vTaskDelay(500);
-            ESP.restart();
-          }
-        }
         if (cmd.cmd.startsWith("Speed"))
         {
           // print("Speed : ", cmd);
           if (cmd.size > 0)
           {
             setMaxSpeed(cmd.data[0]);
-            ESP32_Helper::SaveToPreference("Speed",cmd.data[0]);
+            preferences.putInt("Speed",cmd.data[0]);
             println("Speed : ", getMaxSpeed());
           }
           println("Motor D speed:", motor_D.speed());
@@ -313,7 +303,7 @@ void Task1code(void *pvParameters)
           if (cmd.size > 0)
           {
             setAcceleration(cmd.data[0]);
-            ESP32_Helper::SaveToPreference("Accel",cmd.data[0]);
+            preferences.putInt("Accel",cmd.data[0]);
             println("Accel : ", getAcceleration());
           }
           println("Motor D accel:", motor_D.acceleration());
@@ -371,13 +361,6 @@ void Task1code(void *pvParameters)
             useBlink = cmd.data[0];
           println("Blink : ", useBlink);
         }
-        if (cmd.cmd.startsWith("stepMultiplier"))
-        {
-          // print("stepMultiplier : ", cmd);
-          if (cmd.size > 0)
-            setStepMode(StepMode(cmd.data[0]));
-          println("stepMultiplier : ", StepMode(cmd.data[0]));
-        }
       }
     }
     catch (std::exception const &e)
@@ -389,16 +372,9 @@ void Task1code(void *pvParameters)
   }
 }
 
-unsigned long previousMillisWifi = 0;
-unsigned long previousMillisServer = 0;
-unsigned long intervalWifi = 5000;
-unsigned long intervalServer = 5000;
-unsigned long currentMillisWifi = 0;
-unsigned long currentMillisServer = 0;
-
 int64_t lastSendSerialTime = millis();
 
-Pose lastPosition = {0, 0, 0};
+PoseF lastPosition = {0, 0, 0};
 
 // Note the 1 Tick delay, this is need so the watchdog doesn't get confused
 void Task2code(void *pvParameters)
@@ -409,54 +385,23 @@ void Task2code(void *pvParameters)
   {
     try
     {
-      ESP32_Helper::UpdateSerial();
-
-            if (millis() - lastSendSerialTime > 500)
-            {
-                lastSendSerialTime = millis();
-                Pose p = getCurrentPose();
-
-                if ((int)lastPosition.x != (int)getCurrentPose().x ||
-                    (int)lastPosition.y != (int)getCurrentPose().y ||
-                    (int)(lastPosition.rot) != (int)(getCurrentPose().rot))
-                {
-                  PolarPoint p = {0,0,0,0,0};
-                  p.x = getCurrentPose().x;
-                  p.y = getCurrentPose().y;
-                    teleplot("pos", p, (int)(getCurrentPose().rot), LEVEL_WARN);
-                    lastPosition = getCurrentPose();
-                }
-                // teleplot("mapBoundaries", MapBoundaries, 4, LEVEL_WARN);
-                // teleplot("robot", robot.GetPosition(), LEVEL_WARN);
-            }
-
-      currentMillisWifi = millis();
-      // if WiFi is down, try reconnecting every CHECK_WIFI_TIME seconds
-      if ((WiFi.status() != WL_CONNECTED) && (currentMillisWifi - previousMillisWifi >= intervalWifi))
+      if (millis() - lastSendSerialTime > 500)
       {
-        Serial.println("Reconnecting to WiFi...");
-        //WiFi.disconnect();
-        WiFi.reconnect();
-        previousMillisWifi = currentMillisWifi;
-      }
+          lastSendSerialTime = millis();
+          PoseF p = getCurrentPose();
 
-      currentMillisServer = millis();
-      if (WiFi.status() == WL_CONNECTED)
-      {
-        if (!client.connected() && (currentMillisServer - previousMillisServer >= intervalServer))
-        {
-          client.stop();
-          if (client.connect("192.168.137.1", 20240))
+          if ((int)lastPosition.x != (int)getCurrentPose().x ||
+              (int)lastPosition.y != (int)getCurrentPose().y ||
+              (int)(lastPosition.h) != (int)(getCurrentPose().h))
           {
-            Serial.println("Connected to server !");
-            println("PAMI : ", numPami, " connected !");
+            PolarPoint p = {0,0,0,0,0};
+            p.x = getCurrentPose().x;
+            p.y = getCurrentPose().y;
+              //teleplot("pos", p, (int)(getCurrentPose().h), Level::LEVEL_WARN);
+              lastPosition = getCurrentPose();
           }
-          else
-          {
-            Serial.println("Connection to server failed");
-          }
-          previousMillisServer = currentMillisServer;
-        }
+          // teleplot("mapBoundaries", MapBoundaries, 4, LEVEL_WARN);
+          // teleplot("robot", robot.GetPosition(), LEVEL_WARN);
       }
     }
     catch (std::exception const &e)
@@ -481,30 +426,30 @@ void Blink()
         ledState = HIGH;
       else
         ledState = LOW;
-      if (teamColor == TEAM_BLUE)
+      if (teamColor == Team::TEAM_YELLOW)
       {
-        digitalWrite(LED_1_A, LOW);
-        digitalWrite(LED_1_B, ledState);
+        //digitalWrite(LED_1_A, LOW);
+        //digitalWrite(LED_1_B, ledState);
       }
-      else if (teamColor == TEAM_YELLOW)
+      else
       {
-        digitalWrite(LED_1_B, LOW);
-        digitalWrite(LED_1_A, ledState);
+        //digitalWrite(LED_1_B, LOW);
+        //digitalWrite(LED_1_A, ledState);
       }
     }
   }
   else if (ledState == LOW)
   {
     ledState = HIGH;
-    if (teamColor == TEAM_BLUE)
+    if (teamColor == Team::TEAM_YELLOW)
     {
-      digitalWrite(LED_1_A, LOW);
-      digitalWrite(LED_1_B, ledState);
+      //digitalWrite(LED_1_A, LOW);
+      //digitalWrite(LED_1_B, ledState);
     }
-    else if (teamColor == TEAM_YELLOW)
+    else
     {
-      digitalWrite(LED_1_B, LOW);
-      digitalWrite(LED_1_A, ledState);
+      //digitalWrite(LED_1_B, LOW);
+      //digitalWrite(LED_1_A, ledState);
     }
   }
 }

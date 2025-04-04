@@ -3,14 +3,37 @@
 //VL53L0X sensors[2];
 uint16_t sensor1 = 3000;
 uint16_t sensor2 = 3000;
-
+int pamiNum1=0;
+int pamiNum2=0;
+int pamiNum=0;
 long previousTime = 0;
 
 void initSensor()
 {
     // Set ADC unit resolution on ESP32
     //analogReadResolution(12);
-    //analogSetWidth(12);   
+    //analogSetWidth(12);
+
+  // Sets the Sensor pins as Inputs
+  // pinMode(DETECT_1, INPUT_PULLUP);
+  // pinMode(DETECT_2, INPUT_PULLUP);
+
+  // Tirette
+  pinMode(PIN_START, INPUT_PULLUP);
+
+  // Switch Color
+  pinMode(PIN_TEAM, INPUT_PULLUP);
+
+  // Boutton Arret d'Urgence
+  pinMode(PIN_BAU, INPUT_PULLUP);
+
+  //Selecteur de PAMI
+  pinMode(PIN_PAMI_NUM_1, INPUT);
+  pinMode(PIN_PAMI_NUM_2, INPUT);
+  
+  pamiNum1 = digitalRead(PIN_PAMI_NUM_1);
+  pamiNum2 = digitalRead(PIN_PAMI_NUM_2);
+  pamiNum = (pamiNum1 << 1) | pamiNum2;
 }
 
 int readSensors()
@@ -22,7 +45,8 @@ int readSensors()
 
     // int distance_cm = 29.988 * pow( volts , -1.173)
 
-    int value = analogRead(SHARP_1);
+    //int value = analogRead(SHARP_1);
+    int value = 0;
     /* Conversion Analogique en mm*/
     distance = COEF_A / (value - COEF_B);
     /* Écrêtage */
@@ -37,10 +61,15 @@ bool checkOpponent(uint16_t distance)
     //readSensors();
     //if (sensor1 <= distance || sensor2 <= distance) return true;
 
-    Enable tiretteTmp = (Enable)!digitalRead(PIN_TIRETTE);
+    Enable tiretteTmp = (Enable)!digitalRead(PIN_START);
     
-    if (tiretteTmp == ENABLE_TRUE)
+    if (tiretteTmp == Enable::ENABLE_TRUE)
         return true;
     else 
         return false;
+}
+
+int GetNumPami()
+{
+    return pamiNum;
 }

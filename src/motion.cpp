@@ -3,8 +3,8 @@ using namespace Printer;
 using namespace std;
 
 // Position absolue du robot
-Pose currentPose = {0.0f, 0.0f, 0.0f};
-Pose targetPose = {0.0f, 0.0f, 0.0f};
+PoseF currentPose = {0.0f, 0.0f, 0.0f};
+PoseF targetPose = {0.0f, 0.0f, 0.0f};
 // Déplacement cible polaire
 PolarMove targetMove = {0.0f, 0.0f, 0.0f};
 float tempTargetRotation = 0.0f;
@@ -24,26 +24,20 @@ float maxSpeed = 0;
 float maxAccel = 0;
 
 // create the stepper motor object
-AccelStepper motor_G(AccelStepper::DRIVER, STEP_G, DIR_G);
-AccelStepper motor_D(AccelStepper::DRIVER, STEP_D, DIR_D);
+AccelStepper motor_G(AccelStepper::DRIVER, PIN_STEP_M3, PIN_DIR_M3);
+AccelStepper motor_D(AccelStepper::DRIVER, PIN_STEP_M2, PIN_DIR_M2);
 
 void initMotion()
 {
   // Configure les pins
-  pinMode(ENABLE_G, OUTPUT);
-  pinMode(ENABLE_D, OUTPUT);
-  pinMode(DIR_G, OUTPUT);
-  pinMode(STEP_G, OUTPUT);
-  pinMode(DIR_D, OUTPUT);
-  pinMode(STEP_D, OUTPUT);
-  pinMode(MS1, OUTPUT);
-  pinMode(MS2, OUTPUT);
+  pinMode(PIN_EN_MCU, OUTPUT);
+  pinMode(PIN_DIR_M2, OUTPUT);
+  pinMode(PIN_STEP_M2, OUTPUT);
+  pinMode(PIN_DIR_M3, OUTPUT);
+  pinMode(PIN_STEP_M3, OUTPUT);
 
-  // Configure les pas
-  setStepMode(EIGHTH_STEP);
   // Désactive les moteurs
-  digitalWrite(ENABLE_G, HIGH);
-  digitalWrite(ENABLE_D, HIGH);
+  digitalWrite(PIN_EN_MCU, HIGH);
   // Configure les vitesses et accelerations
   setMaxSpeed();
   setAcceleration();
@@ -75,44 +69,14 @@ float getAcceleration()
   return maxAccel;
 }
 
-void setStepMode(StepMode mode)
-{
-  currentStepMode = mode;
-  switch (mode)
-  {
-  case EIGHTH_STEP:
-    digitalWrite(MS1, LOW);
-    digitalWrite(MS2, LOW);
-    stepMultiplier = 8;
-    break;
-  case HALF_STEP:
-    digitalWrite(MS1, HIGH);
-    digitalWrite(MS2, LOW);
-    stepMultiplier = 2;
-    break;
-  case QUARTER_STEP:
-    digitalWrite(MS1, LOW);
-    digitalWrite(MS2, HIGH);
-    stepMultiplier = 4;
-    break;
-  case SIXTEENTH_STEP:
-    digitalWrite(MS1, HIGH);
-    digitalWrite(MS2, HIGH);
-    stepMultiplier = 16;
-    break;
-  }
-}
-
 void enableMotors()
 {
-  digitalWrite(ENABLE_G, LOW);
-  digitalWrite(ENABLE_D, LOW);
+  digitalWrite(PIN_EN_MCU, LOW);
 }
 
 void disableMotors()
 {
-  digitalWrite(ENABLE_G, HIGH);
-  digitalWrite(ENABLE_D, HIGH);
+  digitalWrite(PIN_EN_MCU, HIGH);
 }
 
 void go(float _dist)
@@ -126,7 +90,7 @@ void go(float _dist)
 void turn(float _angle)
 {
   long stepValue = convertAngleToStep(_angle);
-  int pami = ESP32_Helper::GetNumPami();
+  int pami = GetNumPami();
     motor_G.move(stepValue);
     motor_D.move(stepValue);
   processMove();
@@ -138,24 +102,24 @@ void updateMotors()
   motor_G.run();
 }
 
-Pose getCurrentPose()
+PoseF getCurrentPose()
 {
   return currentPose;
 }
 
 void setCurrentY(float _y)
 {
-  currentPose.setY(_y);
+  currentPose.y = _y;
 }
 
 void setCurrentX(float _x)
 {
-  currentPose.setX(_x);
+  currentPose.x =_x;
 }
 
 void setCurrentRot(float _rot)
 {
-  currentPose.setRot(_rot);
+  currentPose.h = _rot;
 }
 
 void setOpponentChecking(bool _opponentChecking)
@@ -235,9 +199,9 @@ long convertAngleToStep(float _angle)
   return static_cast<long>(revolutions * STEPS_PER_REVOLUTION * stepMultiplier);
 }
 
-void convertToPolar(Pose _target)
+void convertToPolar(PoseF _target)
 {
-  convertToPolar(_target.x, _target.y, _target.rot);
+  convertToPolar(_target.x, _target.y, _target.h);
 }
 
 void convertToPolar(float _x, float _y)
@@ -246,7 +210,7 @@ void convertToPolar(float _x, float _y)
   float dy = _y - currentPose.y;
 
   float targetAngleRadians = atan2(dy, dx);
-  float currentRotRadians = currentPose.rot * (M_PI / 180.0f);
+  float currentRotRadians = currentPose.h * (M_PI / 180.0f);
 
   targetMove.distance = sqrt(dx * dx + dy * dy);
 
@@ -270,7 +234,7 @@ void convertToPolar(float _x, float _y, float _rot)
   float dy = -(_y - currentPose.y);
 
   float targetAngleRadians = atan2(dy, dx);
-  float currentRotRadians = currentPose.rot * (M_PI / 180.0f);
+  float currentRotRadians = currentPose.h * (M_PI / 180.0f);
   float targetRotRadians = _rot * (M_PI / 180.0f);
 
   targetMove.distance = sqrt(dx * dx + dy * dy);
@@ -292,15 +256,15 @@ void convertToPolar(float _x, float _y, float _rot)
   newPolarTarget = true;
 }
 
-void goTo(Pose _target)
+void goTo(PoseF _target)
 {
-  goTo(_target.x, _target.y, _target.rot);
+  goTo(_target.x, _target.y, _target.h);
 }
 
 void goTo(float _x, float _y)
 {
   convertToPolar(_x, _y);
-  int pami = ESP32_Helper::GetNumPami();
+  int pami = GetNumPami();
   if (pami == 2 || pami == 1)
   {
     targetMove.rotation1 = targetMove.rotation1 * 2;
@@ -308,16 +272,16 @@ void goTo(float _x, float _y)
   }
   turn(targetMove.rotation1);
   go(targetMove.distance);
-  currentPose.setX(_x);
-  currentPose.setY(_y);
-  currentPose.setRot(tempTargetRotation);
+  currentPose.x=(_x);
+  currentPose.y=(_y);
+  currentPose.h=(tempTargetRotation);
   newPolarTarget = false;
 }
 
 void goTo(float _x, float _y, float _rot)
 {
   convertToPolar(_x, _y, _rot);
-  int pami = ESP32_Helper::GetNumPami();
+  int pami = GetNumPami();
   if (pami == 2 || pami == 1)
   {
     targetMove.rotation1 = targetMove.rotation1 * 2;
@@ -326,23 +290,23 @@ void goTo(float _x, float _y, float _rot)
   }
   turn(targetMove.rotation1);
   go(targetMove.distance);
-  currentPose.setX(_x);
-  currentPose.setY(_y);
+  currentPose.x=(_x);
+  currentPose.y=(_y);
   turn(targetMove.rotation2);
-  currentPose.setRot(_rot);
+  currentPose.h=(_rot);
   newPolarTarget = false;
 }
 
 void turnTo(float _x, float _y)
 {
   convertToPolar(_x, _y);
-  int pami = ESP32_Helper::GetNumPami();
+  int pami = GetNumPami();
   if (pami == 2 || pami == 1)
   {
     targetMove.rotation1 = targetMove.rotation1 * 2;
     targetMove.distance = targetMove.distance * 2;
   }
   turn(targetMove.rotation1);
-  currentPose.setRot(tempTargetRotation);
+  currentPose.h=(tempTargetRotation);
   newPolarTarget = false;
 }
