@@ -5,29 +5,28 @@
 using namespace Printer;
 using namespace std;
 
-#define TIME_START_PAMI_MATCH 90000
-#define TIME_START_PAMI_TEST 1000
-#define TIME_END_PAMI_TEST TIME_START_PAMI_TEST + 10000
-#define TIME_END_PAMI_MATCH TIME_START_PAMI_MATCH + 10000
+#define TIME_START_PAMI_MATCH 85000
+#define TIME_START_PAMI_TRAIN 1000
+#define TIME_END_PAMI_TRAIN TIME_START_PAMI_TRAIN + 15000
+#define TIME_END_PAMI_MATCH TIME_START_PAMI_MATCH + 15000
 
-#define MATCH_WAIT 0
-#define MATCH_BEGIN 1
-#define PAMI_RUN 2
-#define PAMI_STOP 3
-#define MATCH_END 4
+// WAIT BEGIN RUN STOP END
+enum class State
+{
+    MATCH_WAIT,
+    MATCH_BEGIN,
+    MATCH_RUN,
+    MATCH_STOP,
+    MATCH_END
+};
 
-#define MODE_MATCH 0
-#define MODE_TEST 1
-
-
-int getMatchState();
-void setMatchState(int _state);
-
-int getMatchMode();
-void setMatchMode(int _mode);
+extern State matchState;
+extern Enable matchMode;
 
 void startMatch();
+void stopMatch();
 long getMatchTime();
 void updateMatch();
+void printMatch();
 
 #endif

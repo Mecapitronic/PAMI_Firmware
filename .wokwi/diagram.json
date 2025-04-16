@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "author": "Mecapitronic",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "board-esp32-s3-devkitc-1", "id": "esp", "top": -0.18, "left": 4.57, "attrs": {} },
+    { "type": "wokwi-neopixel", "id": "rgb1", "top": -61.1, "left": 37.4, "attrs": {} },
+    {
+      "type": "wokwi-led-ring",
+      "id": "ring2",
+      "top": 19.84,
+      "left": -219.61,
+      "attrs": { "pixels": "16" }
+    },
+    { "type": "wokwi-slide-switch", "id": "sw1", "top": 119.6, "left": -64.1, "attrs": {} },
+    { "type": "wokwi-slide-switch", "id": "sw2", "top": 148.4, "left": -102.5, "attrs": {} },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btn1",
+      "top": 35,
+      "left": -76.8,
+      "attrs": { "color": "green", "xray": "1" }
+    }
+  ],
+  "connections": [
+    [ "esp:TX", "$serialMonitor:RX", "", [] ],
+    [ "esp:RX", "$serialMonitor:TX", "", [] ],
+    [ "rgb1:VSS", "esp:GND.2", "black", [ "v-0.9", "h47.2", "v76.98" ] ],
+    [ "rgb1:VDD", "esp:3V3.2", "red", [ "h-57.6", "v86.58" ] ],
+    [ "rgb1:DIN", "esp:38", "violet", [ "h37.6", "v0", "h38.4", "v172.98" ] ],
+    [ "esp:GND.1", "ring2:GND", "black", [ "h-72.34", "v-0.18", "h-38.34" ] ],
+    [ "ring2:VCC", "esp:5V", "red", [ "v0" ] ],
+    [ "esp:12", "ring2:DIN", "green", [ "v-0.18", "h-91.48" ] ],
+    [ "esp:13", "sw1:1", "green", [ "h0" ] ],
+    [ "esp:3V3.1", "sw1:2", "green", [ "v0", "h-38.45", "v153.6", "h-38.4" ] ],
+    [ "sw1:2", "sw2:2", "green", [ "v0" ] ],
+    [ "sw2:1", "esp:14", "green", [ "v0" ] ],
+    [ "btn1:1.r", "esp:16", "green", [ "v0" ] ],
+    [ "esp:3V3.1", "btn1:1.l", "green", [ "v0", "h-86.45" ] ]
+  ],
+  "serialMonitor": { "display": "auto", "newline": "lf", "convertEol": false },
+  "dependencies": {}
+}

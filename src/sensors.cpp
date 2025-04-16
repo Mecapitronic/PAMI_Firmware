@@ -18,22 +18,10 @@ void initSensor()
   // pinMode(DETECT_1, INPUT_PULLUP);
   // pinMode(DETECT_2, INPUT_PULLUP);
 
-  // Tirette
-  pinMode(PIN_START, INPUT_PULLUP);
-
-  // Switch Color
-  pinMode(PIN_TEAM, INPUT_PULLUP);
-
-  // Boutton Arret d'Urgence
-  pinMode(PIN_BAU, INPUT_PULLUP);
 
   //Selecteur de PAMI
-  pinMode(PIN_PAMI_NUM_1, INPUT);
-  pinMode(PIN_PAMI_NUM_2, INPUT);
-  
-  pamiNum1 = digitalRead(PIN_PAMI_NUM_1);
-  pamiNum2 = digitalRead(PIN_PAMI_NUM_2);
-  pamiNum = (pamiNum1 << 1) | pamiNum2;
+  pinMode(PIN_PAMI_NUM_1, INPUT_PULLUP);
+  pinMode(PIN_PAMI_NUM_2, INPUT_PULLUP);
 }
 
 int readSensors()
@@ -67,6 +55,14 @@ bool checkOpponent(uint16_t distance)
         return true;
     else 
         return false;
+}
+
+int ReadNumPami()
+{
+    pamiNum1 = digitalRead(PIN_PAMI_NUM_1);
+    pamiNum2 = digitalRead(PIN_PAMI_NUM_2);
+    pamiNum = (pamiNum2 << 1) | pamiNum1;
+    return pamiNum;
 }
 
 int GetNumPami()

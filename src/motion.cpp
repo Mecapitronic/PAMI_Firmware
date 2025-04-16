@@ -47,8 +47,8 @@ void initMotion()
 
 void setMaxSpeed(float _maxSpeed)
 {
-    motor_G.setMaxSpeed(_maxSpeed); // steps/s
-    motor_D.setMaxSpeed(_maxSpeed); // steps/s
+  motor_G.setMaxSpeed(_maxSpeed); // steps/s
+  motor_D.setMaxSpeed(_maxSpeed); // steps/s
   maxSpeed = _maxSpeed;
 }
 
@@ -59,8 +59,8 @@ float getMaxSpeed()
 
 void setAcceleration(float _acceleration)
 {
-    motor_G.setAcceleration(_acceleration); // steps/s^2
-    motor_D.setAcceleration(_acceleration); // steps/s^2
+  motor_G.setAcceleration(_acceleration); // steps/s^2
+  motor_D.setAcceleration(_acceleration); // steps/s^2
   maxAccel = _acceleration;
 }
 
@@ -82,17 +82,16 @@ void disableMotors()
 void go(float _dist)
 {
   long stepValue = convertDistToStep(_dist);
-    motor_G.move(-stepValue);
-    motor_D.move(stepValue);
+  motor_G.move(-stepValue);
+  motor_D.move(stepValue);
   processMove();
 }
 
 void turn(float _angle)
 {
   long stepValue = convertAngleToStep(_angle);
-  int pami = GetNumPami();
-    motor_G.move(stepValue);
-    motor_D.move(stepValue);
+  motor_G.move(stepValue);
+  motor_D.move(stepValue);
   processMove();
 }
 
@@ -114,7 +113,7 @@ void setCurrentY(float _y)
 
 void setCurrentX(float _x)
 {
-  currentPose.x =_x;
+  currentPose.x = _x;
 }
 
 void setCurrentRot(float _rot)
@@ -140,13 +139,13 @@ void processMove()
 
   println("Processing Move...");
 
-  while ((motor_D.isRunning() || motor_G.isRunning()) && getMatchState() != MATCH_END)
+  while ((motor_D.isRunning() || motor_G.isRunning()) && matchState != State::MATCH_END)
   {
     vTaskDelay(1);
-    // Serial.print(">Dspeed:");Serial.println(motor_D.speed());
-    // Serial.print(">DdistanceToGo:");Serial.println( (int)motor_D.distanceToGo());
-    // Serial.print(">Gspeed:");Serial.println( motor_G.speed());
-    // Serial.print(">GdistanceToGo:");Serial.println( (int)motor_G.distanceToGo());
+    // print(">Dspeed:");println(motor_D.speed());
+    // print(">DdistanceToGo:");println( (int)motor_D.distanceToGo());
+    // print(">Gspeed:");println( motor_G.speed());
+    // print(">GdistanceToGo:");println( (int)motor_G.distanceToGo());
     if (opponentChecking)
     {
       if (checkOpponent())
@@ -264,49 +263,30 @@ void goTo(PoseF _target)
 void goTo(float _x, float _y)
 {
   convertToPolar(_x, _y);
-  int pami = GetNumPami();
-  if (pami == 2 || pami == 1)
-  {
-    targetMove.rotation1 = targetMove.rotation1 * 2;
-    targetMove.distance = targetMove.distance * 2;
-  }
   turn(targetMove.rotation1);
   go(targetMove.distance);
-  currentPose.x=(_x);
-  currentPose.y=(_y);
-  currentPose.h=(tempTargetRotation);
+  currentPose.x = (_x);
+  currentPose.y = (_y);
+  currentPose.h = (tempTargetRotation);
   newPolarTarget = false;
 }
 
 void goTo(float _x, float _y, float _rot)
 {
   convertToPolar(_x, _y, _rot);
-  int pami = GetNumPami();
-  if (pami == 2 || pami == 1)
-  {
-    targetMove.rotation1 = targetMove.rotation1 * 2;
-    targetMove.distance = targetMove.distance * 2;
-    targetMove.rotation2 = targetMove.rotation2 * 2;
-  }
   turn(targetMove.rotation1);
   go(targetMove.distance);
-  currentPose.x=(_x);
-  currentPose.y=(_y);
+  currentPose.x = (_x);
+  currentPose.y = (_y);
   turn(targetMove.rotation2);
-  currentPose.h=(_rot);
+  currentPose.h = (_rot);
   newPolarTarget = false;
 }
 
 void turnTo(float _x, float _y)
 {
   convertToPolar(_x, _y);
-  int pami = GetNumPami();
-  if (pami == 2 || pami == 1)
-  {
-    targetMove.rotation1 = targetMove.rotation1 * 2;
-    targetMove.distance = targetMove.distance * 2;
-  }
   turn(targetMove.rotation1);
-  currentPose.h=(tempTargetRotation);
+  currentPose.h = (tempTargetRotation);
   newPolarTarget = false;
 }

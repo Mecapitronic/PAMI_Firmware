@@ -16,6 +16,7 @@
 void initSensor();
 int readSensor();
 bool checkOpponent(uint16_t distance = OPPONENT_DISTANCE_MM);
+int ReadNumPami();
 int GetNumPami();
 
 #endif

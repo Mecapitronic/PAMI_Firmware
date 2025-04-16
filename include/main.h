@@ -7,11 +7,11 @@ using namespace Printer;
 using namespace std;
 
 #include "pin.h"
+#include "match.h"
+#include "ihm.h"
+#include "sensors.h"
 #include "motion.h"
-
-Team teamColor = Team::TEAM_YELLOW;
-Enable tirette = Enable::ENABLE_NONE;
-int numPami = 0;
+int numPami = -1;
 
 TaskHandle_t Task1;
 TaskHandle_t Task2;
@@ -22,12 +22,12 @@ extern int numPami;
  * Get data from serial
  * Send data in a queue for the other thread to compute
  */
-void Task1code(void *pvParameters);
+void TaskMatch(void *pvParameters);
 
 /**
  * Get data from queue and compute them
  */
-void Task2code(void *pvParameters);
+void TaskSerial(void *pvParameters);
 
 void Blink();
 

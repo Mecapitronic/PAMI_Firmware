@@ -3,34 +3,23 @@
 long elapsedTime = 0;
 long startTime = 0;
 
-int matchState = MATCH_WAIT;
-int matchMode = MODE_MATCH;
+// Get the current state of the match
+State matchState = State::MATCH_WAIT;
 
-int getMatchState()
-{
-    return matchState;
-}
-
-void setMatchState(int _state)
-{
-    matchState = _state;
-}
-
-int getMatchMode()
-{
-    return matchMode;
-}
-
-void setMatchMode(int _mode)
-{
-    matchMode = _mode;
-}
+// Get the mode : ENABLE_TRUE is Match, ENABLE_FALSE is Train (default)
+Enable matchMode = Enable::ENABLE_NONE;
 
 void startMatch()
 {
     startTime = millis();
-    matchState = MATCH_BEGIN;
-    println("Match Begin");
+    matchState = State::MATCH_BEGIN;
+    printMatch();
+}
+
+void stopMatch()
+{
+    matchState = State::MATCH_STOP;
+    printMatch();
 }
 
 long getMatchTime()
@@ -40,32 +29,32 @@ long getMatchTime()
 
 void updateMatch()
 {
-    if(getMatchState() == MATCH_WAIT)
+    if(matchState == State::MATCH_WAIT)
     {
         // Wait start of match
     }
-    else if (getMatchState() == MATCH_BEGIN)
+    else if (matchState == State::MATCH_BEGIN)
     {
-        // Match running
+        // Match started, wait for elapsed time to reach the start threshold
         elapsedTime = millis() - startTime;
-        if ((elapsedTime >= TIME_START_PAMI_MATCH && matchMode == MODE_MATCH) || (elapsedTime >= TIME_START_PAMI_TEST && matchMode == MODE_TEST))
+        if ((elapsedTime >= TIME_START_PAMI_MATCH && matchMode == Enable::ENABLE_TRUE) || (elapsedTime >= TIME_START_PAMI_TRAIN && matchMode == Enable::ENABLE_FALSE))
         {
-            setMatchState(PAMI_RUN);
-            println("PAMI Run");
+            matchState = State::MATCH_RUN;
+            printMatch();
         }
     }
-    else if ((getMatchState() == PAMI_RUN) || (getMatchState() == PAMI_STOP))
+    else if ((matchState == State::MATCH_RUN) || (matchState == State::MATCH_STOP))
     {
         // PAMI still running or waiting for end of match
         elapsedTime = millis() - startTime;
         
-        if ((elapsedTime >= TIME_END_PAMI_MATCH && matchMode == MODE_MATCH) || (elapsedTime >= TIME_END_PAMI_TEST && matchMode == MODE_TEST))
+        if ((elapsedTime >= TIME_END_PAMI_MATCH && matchMode == Enable::ENABLE_TRUE) || (elapsedTime >= TIME_END_PAMI_TRAIN && matchMode == Enable::ENABLE_FALSE))
         {
-            setMatchState(MATCH_END);
-            println("Match End");
+            matchState = State::MATCH_END;
+            printMatch();
         }
     }
-    else if(getMatchState() == MATCH_END)
+    else if(matchState == State::MATCH_END)
     {
         // End of match
     }
@@ -73,4 +62,25 @@ void updateMatch()
     {
         // Not possible
     }
+}
+
+void printMatch()
+{
+    SERIAL_DEBUG.print("Match State : ");
+    switch (matchState)
+    {
+        ENUM_PRINT(State::MATCH_WAIT);
+        ENUM_PRINT(State::MATCH_BEGIN);
+        ENUM_PRINT(State::MATCH_RUN);
+        ENUM_PRINT(State::MATCH_STOP);
+        ENUM_PRINT(State::MATCH_END);
+    }
+    
+    SERIAL_DEBUG.print("Match Mode : ");
+    if (matchMode == Enable::ENABLE_TRUE)
+        println("Match");
+    else if(matchMode == Enable::ENABLE_FALSE)
+        println("Training - No starting cooldown");
+    else
+        println("None");
 }
