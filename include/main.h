@@ -3,9 +3,6 @@
 
 #include "ESP32_Helper.h"
 
-using namespace Printer;
-using namespace std;
-
 #include "pin.h"
 #include "match.h"
 #include "ihm.h"

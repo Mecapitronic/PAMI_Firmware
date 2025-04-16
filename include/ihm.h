@@ -6,9 +6,6 @@
 #include "match.h"
 #include <FastLED.h>
 
-using namespace Printer;
-using namespace std;
-
 // TEAM_BLUE = 0
 // TEAM_YELLOW = 1
 enum class Team 

@@ -2,8 +2,6 @@
 #define MATCH_H
 
 #include "ESP32_Helper.h"
-using namespace Printer;
-using namespace std;
 
 #define TIME_START_PAMI_MATCH 85000
 #define TIME_START_PAMI_TRAIN 1000

@@ -1,5 +1,8 @@
 #include "main.h"
 
+using namespace Printer;
+using namespace std;
+
 Preferences preferences;
 
 void setup()

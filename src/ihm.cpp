@@ -1,5 +1,8 @@
 #include "ihm.h"
 
+using namespace Printer;
+using namespace std;
+
 Team team = Team::TEAM_NONE;
 Enable tirette = Enable::ENABLE_NONE;
 int switchMode = -1;

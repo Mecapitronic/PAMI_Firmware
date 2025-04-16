@@ -1,5 +1,8 @@
 #include "match.h"
 
+using namespace Printer;
+using namespace std;
+
 long elapsedTime = 0;
 long startTime = 0;
 
