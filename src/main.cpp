@@ -278,6 +278,13 @@ void TaskSerial(void *pvParameters)
       {
         Command cmd = ESP32_Helper::GetCommand();
 
+        if(cmd.cmd.startsWith("Pos"))
+        {
+          print("Pos : x=", getCurrentPose().x);
+          print("  y=", getCurrentPose().y);
+          print("  h=", getCurrentPose().h);
+          println();
+        }
         if (cmd.cmd.startsWith("Speed"))
         {
           // print("Speed : ", cmd);

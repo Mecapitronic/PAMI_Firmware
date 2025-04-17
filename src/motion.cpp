@@ -37,7 +37,7 @@ void initMotion()
   pinMode(PIN_STEP_M3, OUTPUT);
 
   // Désactive les moteurs
-  digitalWrite(PIN_EN_MCU, HIGH);
+  digitalWrite(PIN_EN_MCU, LOW);
   // Configure les vitesses et accelerations
   setMaxSpeed();
   setAcceleration();
@@ -71,27 +71,27 @@ float getAcceleration()
 
 void enableMotors()
 {
-  digitalWrite(PIN_EN_MCU, LOW);
+  digitalWrite(PIN_EN_MCU, HIGH);
 }
 
 void disableMotors()
 {
-  digitalWrite(PIN_EN_MCU, HIGH);
+  digitalWrite(PIN_EN_MCU, LOW);
 }
 
 void go(float _dist)
 {
   long stepValue = convertDistToStep(_dist);
-  motor_G.move(-stepValue);
-  motor_D.move(stepValue);
+  motor_G.move(stepValue);
+  motor_D.move(-stepValue);
   processMove();
 }
 
 void turn(float _angle)
 {
   long stepValue = convertAngleToStep(_angle);
-  motor_G.move(stepValue);
-  motor_D.move(stepValue);
+  motor_G.move(-stepValue);
+  motor_D.move(-stepValue);
   processMove();
 }
 
