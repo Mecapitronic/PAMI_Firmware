@@ -243,34 +243,26 @@ void TaskMatch(void *pvParameters)
   }
 }
 
-int64_t lastSendSerialTime = millis();
-PoseF lastPosition = {0, 0, 0};
+Pose MapBoundaries[] = {{0, 0, 0}, {0, 2000, 0}, {3000, 2000, 0}, {3000, 0, 0}};
+Timeout teleplotTO;
 // Note the 1 Tick delay, this is need so the watchdog doesn't get confused
 void TaskSerial(void *pvParameters)
 {
   println("Start TaskSerial");
+  teleplotTO.Start(500);
 
   while (1)
   {
     try
     {
-      if (millis() - lastSendSerialTime > 500)
+      if (teleplotTO.IsTimeOut())
       {
-          lastSendSerialTime = millis();
-          PoseF p = getCurrentPose();
-
-          if ((int)lastPosition.x != (int)getCurrentPose().x ||
-              (int)lastPosition.y != (int)getCurrentPose().y ||
-              (int)(lastPosition.h) != (int)(getCurrentPose().h))
-          {
-            PolarPoint p = {0,0,0,0,0};
-            p.x = getCurrentPose().x;
-            p.y = getCurrentPose().y;
-              //teleplot("pos", p, (int)(getCurrentPose().h), Level::LEVEL_WARN);
-              lastPosition = getCurrentPose();
-          }
-          // teleplot("mapBoundaries", MapBoundaries, 4, LEVEL_WARN);
-          // teleplot("robot", robot.GetPosition(), LEVEL_WARN);
+        Printer::teleplot("pos", getCurrentPose());
+        Printer::teleplot("ang", (int)(getCurrentPose().h));
+        Printer::teleplot("mapBoundaries", MapBoundaries[0]);
+        Printer::teleplot("mapBoundaries", MapBoundaries[1]);
+        Printer::teleplot("mapBoundaries", MapBoundaries[2]);
+        Printer::teleplot("mapBoundaries", MapBoundaries[3]);
       }
       
       // Check if we get commands from operator via debug serial
