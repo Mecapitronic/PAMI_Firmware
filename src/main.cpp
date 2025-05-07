@@ -15,11 +15,6 @@ void setup()
   initSensor();
   initMotion();
 
-#ifdef WITH_WIFI
-  // Set your Static IP address
-  IPAddress local_IP(192, 168, 137, 100 + numPami);
-#endif
-
   delay(2000);
 
   int speedPref = preferences.getInt("Speed",0);
@@ -84,7 +79,8 @@ void TaskMatch(void *pvParameters)
         if (numPamiTmp != numPami)
         {
           numPami = numPamiTmp;
-          println("N° PAMI : ",numPami);
+          println("N° PAMI : ", numPami);
+          Wifi_Helper::SetLocalIP("192.168.137." + String(numPami + 1));
         }
         // Start Position
         // Save Y position and orientation
