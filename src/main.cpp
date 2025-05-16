@@ -14,7 +14,7 @@ void setup()
   InitIHM();
   initSensor();
   initMotion();
-
+  
   if (checkSensor())
   {
     println("Opponent detected");
@@ -89,7 +89,7 @@ void TaskMatch(void *pvParameters)
         {
           numPami = numPamiTmp;
           println("N° PAMI : ", numPami);
-          Wifi_Helper::SetLocalIP("192.168.137." + String(numPami + 1));
+          Wifi_Helper::SetLocalIP("192.168.137." + String(100 + numPami + 1));
         }
         // Start Position
         // Save Y position and orientation

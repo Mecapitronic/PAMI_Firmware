@@ -11,7 +11,7 @@
 #define WHEEL_DIAMETER_MM 59.7f     // Diamètre de la roue en millimètres
 #define WHEEL_DISTANCE_MM 87.0f     // Distance entre les roues en millimètres
 
-#define MAX_SPEED       5000.0
+#define MAX_SPEED       4800.0
 #define MAX_ACCELERATION    3000.0
 
 #define STOP_SPEED      20000.0
