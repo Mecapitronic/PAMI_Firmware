@@ -14,9 +14,8 @@ void initSensor()
     //analogReadResolution(12);
     //analogSetWidth(12);
 
-  // Sets the Sensor pins as Inputs
-  // pinMode(DETECT_1, INPUT_PULLUP);
-  // pinMode(DETECT_2, INPUT_PULLUP);
+  //Sets the Sensor pins as Inputs
+  pinMode(PIN_SENSOR_1, INPUT_PULLUP);
 
 
   //Selecteur de PAMI
@@ -44,17 +43,14 @@ int readSensors()
     return distance;
 }
 
-bool checkOpponent(uint16_t distance)
+bool checkSensor()
 {
     //readSensors();
     //if (sensor1 <= distance || sensor2 <= distance) return true;
 
-    Enable tiretteTmp = (Enable)!digitalRead(PIN_START);
+    bool obs = digitalRead(PIN_SENSOR_1);
     
-    if (tiretteTmp == Enable::ENABLE_TRUE)
-        return true;
-    else 
-        return false;
+    return obs;
 }
 
 int ReadNumPami()

@@ -69,7 +69,7 @@ void updateMatch()
 
 void printMatch()
 {
-    SERIAL_DEBUG.print("Match State : ");
+    print("Match State : ");
     switch (matchState)
     {
         ENUM_PRINT(State::MATCH_WAIT);
@@ -79,7 +79,7 @@ void printMatch()
         ENUM_PRINT(State::MATCH_END);
     }
     
-    SERIAL_DEBUG.print("Match Mode : ");
+    print("Match Mode : ");
     if (matchMode == Enable::ENABLE_TRUE)
         println("Match");
     else if(matchMode == Enable::ENABLE_FALSE)

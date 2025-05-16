@@ -3,11 +3,13 @@
 
 #include <cstddef>
 #include <pins_arduino.h>
-//#include <HardwareSerial.h>
+#include <HardwareSerial.h>
 
 //******************** Pins Undefined
-constexpr size_t PIN_10 = 10;
+//constexpr size_t PIN_10 = 10;
 constexpr size_t PIN_11 = 11;
+constexpr size_t PIN_17 = 17;
+constexpr size_t PIN_18 = 18;
 
 //******************** Pins UART - Serial
 /* Do we need this ?
@@ -15,7 +17,8 @@ constexpr size_t PIN_11 = 11;
 #define SOC_RX0 44
 #undef SOC_TX0
 #define SOC_TX0 43
-
+*/
+/*
 #undef RX1
 #define RX1 18
 #undef TX1
@@ -53,5 +56,8 @@ constexpr size_t PIN_START = 16;
 //******************** Pins Selecteur PAMI
 constexpr size_t PIN_PAMI_NUM_1 = 7; // LSB
 constexpr size_t PIN_PAMI_NUM_2 = 6; // MSB
+
+//******************** Pins Sensors
+constexpr size_t PIN_SENSOR_1 = 10;
 
 #endif

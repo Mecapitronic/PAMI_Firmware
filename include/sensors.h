@@ -15,7 +15,7 @@
 // Déclaration des fonctions
 void initSensor();
 int readSensor();
-bool checkOpponent(uint16_t distance = OPPONENT_DISTANCE_MM);
+bool checkSensor();
 int ReadNumPami();
 int GetNumPami();
 
