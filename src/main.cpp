@@ -264,10 +264,10 @@ void TaskSerial(void *pvParameters)
       {
         Printer::teleplot("pos", getCurrentPose());
         Printer::teleplot("ang", (int)(getCurrentPose().h));
-        Printer::teleplot("mapBoundaries", MapBoundaries[0]);
-        Printer::teleplot("mapBoundaries", MapBoundaries[1]);
-        Printer::teleplot("mapBoundaries", MapBoundaries[2]);
-        Printer::teleplot("mapBoundaries", MapBoundaries[3]);
+        //Printer::teleplot("mapBoundaries", MapBoundaries[0]);
+        //Printer::teleplot("mapBoundaries", MapBoundaries[1]);
+        //Printer::teleplot("mapBoundaries", MapBoundaries[2]);
+        //Printer::teleplot("mapBoundaries", MapBoundaries[3]);
       }
       
       // Check if we get commands from operator via debug serial
