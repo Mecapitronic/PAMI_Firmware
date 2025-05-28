@@ -6,9 +6,9 @@ using namespace std;
 Preferences preferences;
 
 void setup()
-{  
+{
   ESP32_Helper::Initialisation();
-  delay(2000);
+  //delay(2000);
   println("PAMI Firmware");
 
   InitIHM();
@@ -24,7 +24,7 @@ void setup()
     println("No opponent detected");
   }
 
-  delay(2000);
+  //delay(2000);
 
   int speedPref = preferences.getInt("Speed",0);
   int accelPref = preferences.getInt("Accel",0);
