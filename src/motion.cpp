@@ -150,7 +150,6 @@ void processMove()
     {
       if (checkSensor())
       {
-        println("Opponent detected");
         tempDistance_D = motor_D.distanceToGo();
         tempDistance_G = motor_G.distanceToGo();
 
@@ -166,14 +165,15 @@ void processMove()
         tempDistance_D = tempDistance_D + motor_D.distanceToGo();
         tempDistance_G = tempDistance_G + motor_G.distanceToGo();
 
+        println("Opponent detected");
         while (checkSensor())
         {
-          vTaskDelay(100 / portTICK_PERIOD_MS);
+          vTaskDelay(1000 / portTICK_PERIOD_MS);
           println("Opponent still here");
         }
 
-        setAcceleration(accelTmp);
-        setMaxSpeed(speedTmp);
+        setAcceleration(accelTmp/4);
+        setMaxSpeed(speedTmp/4);
 
         motor_D.move(tempDistance_D);
         motor_G.move(tempDistance_G);

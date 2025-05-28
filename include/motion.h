@@ -14,8 +14,8 @@
 #define MAX_SPEED       4800.0
 #define MAX_ACCELERATION    3000.0
 
-#define STOP_SPEED      20000.0
-#define STOP_ACCELERATION   9000.0
+#define STOP_SPEED      48000.0
+#define STOP_ACCELERATION   30000.0
 
 #define CENTER_POSITION_MM 53       // Valeur entre l'arrière du robot et le centre des roues en millimètres
 
