@@ -93,33 +93,26 @@ void TaskMatch(void *pvParameters)
         }
         // Start Position
         // Save Y position and orientation
-        setCurrentY(CENTER_POSITION_MM);
-        setCurrentRot(90);
-        if (team == Team::TEAM_YELLOW)
-        {
           if (numPami == 0)
-            setCurrentX(1102);
+            setCurrentY(1924);
           else if (numPami == 1)
-            setCurrentX(1216);
+            setCurrentY(1817);
           else if (numPami == 2)
-            setCurrentX(1330);
+            setCurrentY(1710);
           else if (numPami == 3)
-            setCurrentX(1444);
+            setCurrentY(1603);
           else
             println("ERROR robot number");
+
+        if (team == Team::TEAM_YELLOW)
+        {
+          setCurrentX(CENTER_POSITION_MM);
+          setCurrentRot(0);
         }
         else
         {
-          if (numPami == 0)
-            setCurrentX(1898);
-          else if (numPami == 1)
-            setCurrentX(1784);
-          else if (numPami == 2)
-            setCurrentX(1670);
-          else if (numPami == 3)
-            setCurrentX(1556);
-          else
-            println("ERROR robot number");
+          setCurrentX(3000-CENTER_POSITION_MM);
+          setCurrentRot(180);
         }
       }
 
@@ -140,88 +133,63 @@ void TaskMatch(void *pvParameters)
         setOpponentChecking(true);
         if (numPami == 0)
         {
+          setOpponentChecking(true);
           if (team == Team::TEAM_YELLOW)
           {
-            //goTo(1102, 650);
-            goTo(1102, 150);
-            goTo(763, 150);
-            setOpponentChecking(false);
-            goTo(763, 20);
+            goTo(647, 1924);
+            setMaxSpeed(MAX_SPEED/4);
+            setAcceleration(MAX_ACCELERATION/4);
+            goTo(1250, 1924);
+            turnTo(1250, 1580);
+            goTo(1250, 1580);
           }
           else
           {
-            //goTo(3000 - 1102, 650); // 1 roue tourne plus vite que l'autre = 1 arc de cercle
-            goTo(3000 - 1102, 150);
-            goTo(3000 - 763, 150);
-            setOpponentChecking(false);
-            goTo(3000 - 763, 20);
+            goTo(3000 - 647, 1924);
+            setMaxSpeed(MAX_SPEED/4);
+            setAcceleration(MAX_ACCELERATION/4);
+            goTo(3000 - 1250, 1924);
+            turnTo(3000 - 1250, 1580);
+            goTo(3000 - 1250, 1580);
           }
         }
         else if (numPami == 1)
         {
           if (team == Team::TEAM_YELLOW)
           {
-            goTo(1216, 475);
-            float accel = getAcceleration();
-            setAcceleration(2000);
-            float speed = getMaxSpeed();
-            setMaxSpeed(2000);
-            turnTo(450, 475);
-            setAcceleration(accel);
-            setMaxSpeed(speed);
-            goTo(450, 475);
-            setOpponentChecking(false);
-            goTo(20, 475);
+            goTo(200, 1817);
+            turnTo(1500, 1250);
           }
           else
           {
-            goTo(3000 - 1216, 475);
-            float accel = getAcceleration();
-            setAcceleration(2000);
-            float speed = getMaxSpeed();
-            setMaxSpeed(2000);
-            turnTo(3000 - 450, 475);
-            setAcceleration(accel);
-            setMaxSpeed(speed);
-            goTo(3000 - 450, 475);
-            setOpponentChecking(false);
-            goTo(3000 - 20, 475);
+            goTo(3000 - 200, 1817);
+            turnTo(3000 - 1500, 1250);
           }
         }
         else if (numPami == 2)
         {
           if (team == Team::TEAM_YELLOW)
           {
-            goTo(1330, 1400);
-            goTo(400, 1600);
-            setOpponentChecking(false);
-            //goTo(400, 1600);
-            goTo(350, 1650);
+            goTo(375, 1710);
+            turnTo(1500, 1250);
           }
           else
           {
-            goTo(3000 - 1330, 1400);
-            goTo(3000 - 400, 1600);
-            setOpponentChecking(false);
-            //goTo(3000 - 400, 1600);
-            goTo(3000 - 350, 1650);
+            goTo(3000 - 375, 1710);
+            turnTo(3000 - 1500, 1250);
           }
         }
         else if (numPami == 3)
         {
           if (team == Team::TEAM_YELLOW)
           {
-            goTo(1444, 1000);
-            goTo(2500, 1000);
-            setOpponentChecking(false);
-            goTo(2800, 1000);
+            goTo(550, 1603);
+            turnTo(1500, 1250);
           }
           else
           {
-            goTo(3000 - 1444, 1000);
-            goTo(3000 - 2500, 1000);
-            setOpponentChecking(false);
-            goTo(3000 - 2800, 1000);
+            goTo(3000 - 550, 1603);
+            turnTo(3000 - 1500, 1250);
           }
         }
         stopMatch();
