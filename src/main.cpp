@@ -8,7 +8,7 @@ Preferences preferences;
 void setup()
 {
   ESP32_Helper::Initialisation();
-  //delay(2000);
+  delay(2000);
   println("PAMI Firmware");
 
   InitIHM();
@@ -137,33 +137,48 @@ void TaskMatch(void *pvParameters)
           if (team == Team::TEAM_YELLOW)
           {
             goTo(647, 1924);
-            setMaxSpeed(MAX_SPEED/4);
-            setAcceleration(MAX_ACCELERATION/4);
+            setMaxSpeed(MAX_SPEED/3);
+            setAcceleration(MAX_ACCELERATION/3);
             goTo(1250, 1924);
+            setMaxSpeed(MAX_SPEED/2);
+            setAcceleration(MAX_ACCELERATION/2);
             turnTo(1250, 1580);
+            go(-100);
+            setCurrentY(2000-CENTER_POSITION_MM);
+            setMaxSpeed(MAX_SPEED);
+            setAcceleration(MAX_ACCELERATION);
             goTo(1250, 1580);
           }
           else
           {
             goTo(3000 - 647, 1924);
-            setMaxSpeed(MAX_SPEED/4);
-            setAcceleration(MAX_ACCELERATION/4);
+            setMaxSpeed(MAX_SPEED/3);
+            setAcceleration(MAX_ACCELERATION/3);
             goTo(3000 - 1250, 1924);
+            setMaxSpeed(MAX_SPEED/2);
+            setAcceleration(MAX_ACCELERATION/2);
             turnTo(3000 - 1250, 1580);
+            go(-100);
+            setCurrentY(2000-CENTER_POSITION_MM);
+            setMaxSpeed(MAX_SPEED);
+            setAcceleration(MAX_ACCELERATION);
             goTo(3000 - 1250, 1580);
           }
         }
         else if (numPami == 1)
         {
+          delay(3000);
           if (team == Team::TEAM_YELLOW)
           {
-            goTo(200, 1817);
-            turnTo(1500, 1250);
+            goTo(350, 1817);
+            turnTo(750, 1500);
+            goTo(750, 1500);
           }
           else
           {
-            goTo(3000 - 200, 1817);
-            turnTo(3000 - 1500, 1250);
+            goTo(3000 - 350, 1817);
+            turnTo(3000 - 750, 1500);
+            goTo(3000 - 750, 1500);
           }
         }
         else if (numPami == 2)
@@ -171,12 +186,18 @@ void TaskMatch(void *pvParameters)
           if (team == Team::TEAM_YELLOW)
           {
             goTo(375, 1710);
-            turnTo(1500, 1250);
+            turnTo(1500, 1250);            
+            setMaxSpeed(MAX_SPEED/2);
+            setAcceleration(MAX_ACCELERATION/2);
+            goTo(1500, 1250);
           }
           else
           {
             goTo(3000 - 375, 1710);
             turnTo(3000 - 1500, 1250);
+            setMaxSpeed(MAX_SPEED/2);
+            setAcceleration(MAX_ACCELERATION/2);
+            goTo(3000 - 1500, 1250);
           }
         }
         else if (numPami == 3)
