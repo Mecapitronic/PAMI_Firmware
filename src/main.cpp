@@ -68,7 +68,6 @@ void loop()
   Blink();
 }
 
-int lastMatchTime = 0;
 // Note the 1 Tick delay, this is need  so the watchdog doesn't get confused
 void TaskMatch(void *pvParameters)
 {
@@ -244,6 +243,7 @@ void TaskSerial(void *pvParameters)
 {
   println("Start TaskSerial");
   teleplotTO.Start(500);
+  int lastMatchTime = 0;
 
   while (1)
   {
@@ -253,6 +253,14 @@ void TaskSerial(void *pvParameters)
       {
         Printer::teleplot("pos", getCurrentPose());
         Printer::teleplot("ang", (int)(getCurrentPose().h));
+
+        
+        // Countdown
+        if (lastMatchTime != (int)(getMatchTimeSec()))
+        {
+            println("Match Time : ", (int)(getMatchTimeSec()));
+            lastMatchTime = (int)(getMatchTimeSec());
+        }
         //Printer::teleplot("mapBoundaries", MapBoundaries[0]);
         //Printer::teleplot("mapBoundaries", MapBoundaries[1]);
         //Printer::teleplot("mapBoundaries", MapBoundaries[2]);

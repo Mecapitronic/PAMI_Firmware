@@ -25,9 +25,23 @@ void stopMatch()
     printMatch();
 }
 
-long getMatchTime()
+void resetMatch()
 {
-    return millis() - startTime;
+    matchState = State::MATCH_WAIT;
+    printMatch();
+}
+
+long getMatchTimeSec()
+{
+    return (getMatchTimeMs()) / 1000;
+}
+
+long getMatchTimeMs()
+{
+    if (matchState != State::MATCH_WAIT)
+        return millis() - startTime;
+    else
+    return 0; // Match not started yet
 }
 
 void updateMatch()

@@ -23,7 +23,9 @@ extern Enable matchMode;
 
 void startMatch();
 void stopMatch();
-long getMatchTime();
+void resetMatch();
+long getMatchTimeSec();
+long getMatchTimeMs();
 void updateMatch();
 void printMatch();
 
