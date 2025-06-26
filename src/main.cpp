@@ -26,19 +26,22 @@ void setup()
 
   //delay(2000);
 
-  int speedPref = preferences.getInt("Speed",0);
-  int accelPref = preferences.getInt("Accel",0);
+  setMaxSpeed(MAX_SPEED);
+  setAcceleration(MAX_ACCELERATION);
+
+  //int speedPref = preferences.getInt("Speed",0);
+  //int accelPref = preferences.getInt("Accel",0);
     
-  if(speedPref != 0)
-  {
-    setMaxSpeed(speedPref);
-    println("Speed : ", speedPref);
-  }
-  if(accelPref != 0)
-  {
-    setAcceleration(accelPref);
-    println("Accel : ", accelPref);
-  }
+  // if(speedPref != 0)
+  // {
+  //   setMaxSpeed(speedPref);
+  //   println("Speed : ", speedPref);
+  // }
+  // if(accelPref != 0)
+  // {
+  //   setAcceleration(accelPref);
+  //   println("Accel : ", accelPref);
+  // }
 
   /* Task function. */
   /* name of task. */
@@ -370,11 +373,11 @@ void TaskSerial(void *pvParameters)
           if (cmd.size > 0)
           {
             setMaxSpeed(cmd.data[0]);
-            preferences.putInt("Speed",cmd.data[0]);
+            //preferences.putInt("Speed",cmd.data[0]);
             println("Speed : ", getMaxSpeed());
           }
-          println("Motor D speed:", motor_D.speed());
-          println("Motor G speed:", motor_G.speed());
+          println("Motor D speed:", motor_D.maxSpeed());
+          println("Motor G speed:", motor_G.maxSpeed());
         }
         if (cmd.cmd.startsWith("Accel"))
         {
@@ -382,7 +385,7 @@ void TaskSerial(void *pvParameters)
           if (cmd.size > 0)
           {
             setAcceleration(cmd.data[0]);
-            preferences.putInt("Accel",cmd.data[0]);
+            //preferences.putInt("Accel",cmd.data[0]);
             println("Accel : ", getAcceleration());
           }
           println("Motor D accel:", motor_D.acceleration());
