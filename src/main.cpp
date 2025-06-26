@@ -92,44 +92,126 @@ void TaskMatch(void *pvParameters)
         }
         // Start Position
         // Save Y position and orientation
-          if (numPami == 0)
-            setCurrentY(1924);
-          else if (numPami == 1)
-            setCurrentY(1817);
-          else if (numPami == 2)
-            setCurrentY(1710);
-          else if (numPami == 3)
-            setCurrentY(1603);
-          else
-            println("ERROR robot number");
-
-        if (team == Team::TEAM_YELLOW)
-        {
+        
+          setCurrentY(0);
           setCurrentX(CENTER_POSITION_MM);
           setCurrentRot(0);
-        }
-        else
-        {
-          setCurrentX(3000-CENTER_POSITION_MM);
-          setCurrentRot(180);
-        }
+
+        //   if (numPami == 0)
+        //     setCurrentY(1924);
+        //   else if (numPami == 1)
+        //     setCurrentY(1817);
+        //   else if (numPami == 2)
+        //     setCurrentY(1710);
+        //   else if (numPami == 3)
+        //     setCurrentY(1603);
+        //   else
+        //     println("ERROR robot number");
+
+        // if (team == Team::TEAM_YELLOW)
+        // {
+        //   setCurrentX(CENTER_POSITION_MM);
+        //   setCurrentRot(0);
+        // }
+        // else
+        // {
+        //   setCurrentX(3000-CENTER_POSITION_MM);
+        //   setCurrentRot(180);
+        // }
       }
 
       // Match en cours
       if (matchState == State::MATCH_BEGIN)
       {
         // Countdown
-        if(lastMatchTime != (int)(getMatchTime()/1000))
+        //if(lastMatchTime != (int)(getMatchTime()/1000))
+        //{
+        //  println("Match Time : ", (int)(getMatchTime()/1000));
+        //  lastMatchTime=(int)(getMatchTime()/1000);
+        //}
+        if(matchMode == Enable::ENABLE_TRUE)
         {
-          println("Match Time : ", (int)(getMatchTime()/1000));
-          lastMatchTime=(int)(getMatchTime()/1000);
+        }
+        else
+        {
+          // long speed = 0;
+          // long accel = 0;
+          // setOpponentChecking(true);
+          
+          // speed = micros()%(int)(MAX_SPEED*3/4)+(int)(MAX_SPEED*1/4);
+          // accel = micros()%(int)(MAX_ACCELERATION*3/4)+(int)(MAX_ACCELERATION*1/4);
+          // println("speed : ",speed);
+          // println("accel : ",accel);
+          // setMaxSpeed(speed);
+          // setAcceleration(accel);
+          
+          // turn(400);
         }
       }
 
       // Démarrage des PAMI
       if (matchState == State::MATCH_RUN)
       {
-        setOpponentChecking(true);
+        println("-------");
+        println("Start !");
+
+        if(switchMode)
+        {
+          println("Mode Match !");
+          long speed = 0;
+          long accel = 0;
+          setOpponentChecking(true);
+          
+          speed = micros()%(int)(MAX_SPEED*3/4)+(int)(MAX_SPEED*1/4);
+          accel = micros()%(int)(MAX_ACCELERATION*3/4)+(int)(MAX_ACCELERATION*1/4);
+          println("speed : ",speed);
+          println("accel : ",accel);
+          setMaxSpeed(speed);
+          setAcceleration(accel);
+          
+          go(800);
+
+          speed = micros()%(int)(MAX_SPEED*3/4)+(int)(MAX_SPEED*1/4);
+          accel = micros()%(int)(MAX_ACCELERATION*3/4)+(int)(MAX_ACCELERATION*1/4);
+          println("speed : ",speed);
+          println("accel : ",accel);
+          setMaxSpeed(speed);
+          setAcceleration(accel);
+
+          turn(180);
+
+          speed = micros()%(int)(MAX_SPEED*3/4)+(int)(MAX_SPEED*1/4);
+          accel = micros()%(int)(MAX_ACCELERATION*3/4)+(int)(MAX_ACCELERATION*1/4);
+          println("speed : ",speed);
+          println("accel : ",accel);
+          setMaxSpeed(speed);
+          setAcceleration(accel);
+
+          go(1000);
+        }
+        else
+        {
+          println("Mode Test !");
+          
+          long speed = 0;
+          long accel = 0;
+          setOpponentChecking(true);
+          
+          speed = MAX_SPEED;//micros()%(int)(MAX_SPEED*3/4)+(int)(MAX_SPEED*1/4);
+          accel = MAX_ACCELERATION;//micros()%(int)(MAX_ACCELERATION*3/4)+(int)(MAX_ACCELERATION*1/4);
+          println("speed : ",speed);
+          println("accel : ",accel);
+          setMaxSpeed(speed);
+          setAcceleration(accel);
+          
+          go(1000);
+        }
+      
+
+        println("Stop !");
+        println("------");
+
+        /*
         if (numPami == 0)
         {
           setOpponentChecking(true);
@@ -212,7 +294,10 @@ void TaskMatch(void *pvParameters)
             turnTo(3000 - 1500, 1250);
           }
         }
-        stopMatch();
+        */
+        
+        // Restart in waiting State
+        resetMatch();
       }
 
       // Arrêt des PAMI
@@ -249,7 +334,7 @@ void TaskSerial(void *pvParameters)
   {
     try
     {
-      if (teleplotTO.IsTimeOut())
+      if (teleplotTO.IsTimeOut() && matchState!=State::MATCH_RUN)
       {
         Printer::teleplot("pos", getCurrentPose());
         Printer::teleplot("ang", (int)(getCurrentPose().h));
