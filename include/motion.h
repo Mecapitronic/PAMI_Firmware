@@ -8,11 +8,11 @@
 #include "ESP32_Helper.h"
 
 #define STEPS_PER_REVOLUTION 200    // Nombre de pas par tour du moteur
-#define WHEEL_DIAMETER_MM 59.7f     // Diamètre de la roue en millimètres
-#define WHEEL_DISTANCE_MM 87.0f     // Distance entre les roues en millimètres
+#define WHEEL_DIAMETER_MM 59.6f     // Diamètre de la roue en millimètres
+#define WHEEL_DISTANCE_MM 88.8f     // Distance entre les roues en millimètres
 
-#define MAX_SPEED       4800.0
-#define MAX_ACCELERATION    3000.0
+#define MAX_SPEED       4700.0
+#define MAX_ACCELERATION    5000.0
 
 #define STOP_SPEED      48000.0
 #define STOP_ACCELERATION   30000.0

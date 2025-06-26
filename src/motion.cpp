@@ -14,7 +14,7 @@ int motionState = MOTION_WAIT;
 
 StepMode currentStepMode = EIGHTH_STEP;
 int stepMultiplier = 8;
-float circumferenceMM = WHEEL_DIAMETER_MM * PI; // 2 PI r
+constexpr float circumferenceMM = WHEEL_DIAMETER_MM * PI; // 2 PI r
 
 // Variable Opponent
 bool opponentChecking = false;
