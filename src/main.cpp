@@ -207,7 +207,10 @@ void TaskMatch(void *pvParameters)
           setMaxSpeed(speed);
           setAcceleration(accel);
           
-          go(1000);
+          turn(45);
+          turn(-90);
+          turn(45);
+          turn(-360);
         }
       
 
