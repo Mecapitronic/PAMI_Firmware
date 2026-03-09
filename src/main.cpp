@@ -12,6 +12,11 @@ void setup()
   println("PAMI Firmware");
 
   InitIHM();
+  
+  ServoAX12::Initialisation(SERIAL_SERVO, RX_SERVO, TX_SERVO, PIN_SERVO_DIR);
+
+  ServoAX12::AddServo(ServoID::Test, "Test", ServoPosition::TestMin, ServoPosition::TestMax);
+
   initSensor();
   initMotion();
   

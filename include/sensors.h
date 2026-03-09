@@ -1,7 +1,7 @@
 #ifndef SENSORS_H
 #define SENSORS_H
 
-#include "pin.h"
+#include "pins.h"
 #include "ESP32_Helper.h"
 
 #define OPPONENT_DISTANCE_MM 200

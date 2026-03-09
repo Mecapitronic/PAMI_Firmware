@@ -2,7 +2,7 @@
 #define IHM_H
 
 #include "ESP32_Helper.h"
-#include "pin.h"
+#include "pins.h"
 #include "match.h"
 #include <FastLED.h>
 

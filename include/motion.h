@@ -2,7 +2,7 @@
 #define MOTION_H
 
 #include <AccelStepper.h>
-#include "pin.h"
+#include "pins.h"
 #include "match.h"
 #include "sensors.h"
 #include "ESP32_Helper.h"
