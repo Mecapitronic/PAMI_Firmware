@@ -3,3 +3,8 @@
 	url = https://github.com/Mecapitronic/ESP32_Helper.git
 	branch = main
 	ignore = dirty
+[submodule "lib/Esp32_Hardware"]
+	path = lib/Esp32_Hardware
+	url = https://github.com/Mecapitronic/Esp32_Hardware.git
+	branch = main
+	ignore = dirty
