@@ -20,14 +20,6 @@ void setup()
   initSensor();
   initMotion();
   
-  if (checkSensor())
-  {
-    println("Opponent detected");
-  }
-  else
-  {
-    println("No opponent detected");
-  }
 
   //delay(2000);
 

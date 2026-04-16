@@ -148,7 +148,8 @@ void processMove()
     // print(">GdistanceToGo:");println( (int)motor_G.distanceToGo());
     if (opponentChecking)
     {
-      if (checkSensor())
+      // if we need to stop
+      if (false)
       {
         tempDistance_D = motor_D.distanceToGo();
         tempDistance_G = motor_G.distanceToGo();
@@ -166,7 +167,8 @@ void processMove()
         tempDistance_G = tempDistance_G + motor_G.distanceToGo();
 
         println("Opponent detected");
-        while (checkSensor())
+        // While we need to stop
+        while (false)
         {
           vTaskDelay(1000 / portTICK_PERIOD_MS);
           println("Opponent still here");
