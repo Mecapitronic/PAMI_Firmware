@@ -139,7 +139,7 @@ void processMove()
 
   println("Processing Move...");
 
-  while ((motor_D.isRunning() || motor_G.isRunning()) && matchState != State::MATCH_END)
+  while ((motor_D.isRunning() || motor_G.isRunning()))// && Match::matchState != Match::State::MATCH_END)
   {
     vTaskDelay(1);
     // print(">Dspeed:");println(motor_D.speed());

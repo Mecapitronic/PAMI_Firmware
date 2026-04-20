@@ -5,9 +5,9 @@ namespace Hardware_Config
 {
     enum class ServoPosition
     {
-        TestMin = 0,
-        TestTest = 145,
-        TestMax = 290,
+        VL53Min = 0,
+        VL53Pos = 145,
+        VL53Max = 290,
 
         Min = 0,
         Max = 290
@@ -15,7 +15,7 @@ namespace Hardware_Config
     
     enum class ServoID
     {
-        Test = 0,           // Servo pour soulever la planche
+        VL53 = 1,           // Servo pour bouger le VL53
         BroadCast = 0xFE    // Broadcast ID pour communiquer avec tous les servos
     };
 }

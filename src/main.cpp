@@ -4,22 +4,29 @@ using namespace Printer;
 using namespace std;
 
 Preferences preferences;
+Adafruit_INA219 ina219;
 
 void setup()
 {
   ESP32_Helper::Initialisation();
-  delay(2000);
   println("PAMI Firmware");
 
-  InitIHM();
-  
-  ServoAX12::Initialisation(SERIAL_SERVO, RX_SERVO, TX_SERVO, PIN_SERVO_DIR);
+  // Normal speed is 100 000
+  // With higher speed, instructions on I2C take less time
+  Wire.begin(SDA, SCL, 400000UL);
 
-  ServoAX12::AddServo(ServoID::Test, "Test", ServoPosition::TestMin, ServoPosition::TestMax);
+  Screen::Initialisation();
+  Screen::Logo();
+
+  IHM::Initialisation();
+  Match::Initialisation();
 
   initSensor();
   initMotion();
-  
+
+  ServoAX12::Initialisation(SERIAL_SERVO, RX_SERVO, TX_SERVO, PIN_SERVO_DIR);
+  ServoAX12::AddServo(ServoID::VL53, "VL53", ServoPosition::VL53Min, ServoPosition::VL53Max);
+  ServoAX12::SetServoPosition(ServoID::VL53, ServoPosition::VL53Pos);
 
   //delay(2000);
 
@@ -28,16 +35,16 @@ void setup()
 
   //int speedPref = preferences.getInt("Speed",0);
   //int accelPref = preferences.getInt("Accel",0);
-    
+
   // if(speedPref != 0)
   // {
   //   setMaxSpeed(speedPref);
-  //   println("Speed : ", speedPref);
+  //   println("Speed : %i", speedPref);
   // }
   // if(accelPref != 0)
   // {
   //   setAcceleration(accelPref);
-  //   println("Accel : ", accelPref);
+  //   println("Accel : %i", accelPref);
   // }
 
   /* Task function. */
@@ -48,15 +55,12 @@ void setup()
   /* Task handle to keep track of created task */
   /* pin task to core 0 */
   xTaskCreatePinnedToCore(TaskMatch, "TaskMatch", 20000, NULL, 10, &Task1, 0);
-  xTaskCreatePinnedToCore(TaskSerial, "TaskSerial", 20000, NULL, 5, &Task2, 1);
+  xTaskCreatePinnedToCore(TaskSerial, "TaskSerial", 20000, NULL, 5, &Task2, 0);
 }
-
 
 void loop()
 {
-  updateMatch();
-  UpdateBAU();
-  if (matchState != State::MATCH_STOP && matchState != State::MATCH_END && (motor_D.isRunning() || motor_G.isRunning()))
+  if (Match::matchState != Match::State::MATCH_STOP && Match::matchState != Match::State::MATCH_END && (motor_D.isRunning() || motor_G.isRunning()))
   {
     enableMotors();
     updateMotors();
@@ -65,7 +69,6 @@ void loop()
   {
     disableMotors();
   }
-  Blink();
 }
 
 // Note the 1 Tick delay, this is need  so the watchdog doesn't get confused
@@ -77,25 +80,24 @@ void TaskMatch(void *pvParameters)
   {
     try
     {
-      // Attente du démarrage du match par la tirette
-      if (matchState == State::MATCH_WAIT)
+      // En attente de retrait de la tirette pour démarrer le match
+      if (Match::matchState == Match::State::MATCH_WAIT)
       {
-        UpdateHMI();
-
         // Lecture do codage du numéro de PAMI
         int numPamiTmp = ReadNumPami();
         if (numPamiTmp != numPami)
         {
           numPami = numPamiTmp;
-          println("N° PAMI : ", numPami);
+          println("N° PAMI : %i", numPami);
           Wifi_Helper::SetLocalIP("192.168.137." + String(100 + numPami + 1));
         }
+
         // Start Position
         // Save Y position and orientation
-        
-          setCurrentY(0);
-          setCurrentX(CENTER_POSITION_MM);
-          setCurrentRot(0);
+
+        setCurrentY(0);
+        setCurrentX(CENTER_POSITION_MM);
+        setCurrentRot(0);
 
         //   if (numPami == 0)
         //     setCurrentY(1924);
@@ -121,69 +123,53 @@ void TaskMatch(void *pvParameters)
       }
 
       // Match en cours
-      if (matchState == State::MATCH_BEGIN)
+      if (Match::matchState == Match::State::MATCH_RUN)
       {
-        // Countdown
-        //if(lastMatchTime != (int)(getMatchTime()/1000))
-        //{
-        //  println("Match Time : ", (int)(getMatchTime()/1000));
-        //  lastMatchTime=(int)(getMatchTime()/1000);
-        //}
-        if(matchMode == Enable::ENABLE_TRUE)
+        /*
+        int lastMatchTime = 0;
+        while(Match::getMatchTimeMs() < Match::time_start_match && IHM::switchMode == 1)
         {
-        }
-        else
-        {
-          // long speed = 0;
-          // long accel = 0;
-          // setOpponentChecking(true);
-          
-          // speed = micros()%(int)(MAX_SPEED*3/4)+(int)(MAX_SPEED*1/4);
-          // accel = micros()%(int)(MAX_ACCELERATION*3/4)+(int)(MAX_ACCELERATION*1/4);
-          // println("speed : ",speed);
-          // println("accel : ",accel);
-          // setMaxSpeed(speed);
-          // setAcceleration(accel);
-          
-          // turn(400);
-        }
-      }
+          // Countdown to start
+          if (lastMatchTime != (int)(Match::getMatchTimeSec()))
+          {
+              println("Match Time : %i", (int)(Match::getMatchTimeSec()));
+              lastMatchTime = (int)(Match::getMatchTimeSec());
+          }
+          vTaskDelay(1);
+        }*/
 
-      // Démarrage des PAMI
-      if (matchState == State::MATCH_RUN)
-      {
         println("-------");
         println("Start !");
 
-        if(switchMode)
+        if (IHM::switchMode == 1)
         {
           println("Mode Match !");
           long speed = 0;
           long accel = 0;
-          setOpponentChecking(true);
-          
-          speed = micros()%(int)(MAX_SPEED*3/4)+(int)(MAX_SPEED*1/4);
-          accel = micros()%(int)(MAX_ACCELERATION*3/4)+(int)(MAX_ACCELERATION*1/4);
-          println("speed : ",speed);
-          println("accel : ",accel);
+          // setOpponentChecking(true);
+
+          speed = micros() % (int)(MAX_SPEED * 3 / 4) + (int)(MAX_SPEED * 1 / 4);
+          accel = micros() % (int)(MAX_ACCELERATION * 3 / 4) + (int)(MAX_ACCELERATION * 1 / 4);
+          println("speed : %i", speed);
+          println("accel : %i", accel);
           setMaxSpeed(speed);
           setAcceleration(accel);
-          
+
           go(800);
 
-          speed = micros()%(int)(MAX_SPEED*3/4)+(int)(MAX_SPEED*1/4);
-          accel = micros()%(int)(MAX_ACCELERATION*3/4)+(int)(MAX_ACCELERATION*1/4);
-          println("speed : ",speed);
-          println("accel : ",accel);
+          speed = micros() % (int)(MAX_SPEED * 3 / 4) + (int)(MAX_SPEED * 1 / 4);
+          accel = micros() % (int)(MAX_ACCELERATION * 3 / 4) + (int)(MAX_ACCELERATION * 1 / 4);
+          println("speed : %i", speed);
+          println("accel : %i", accel);
           setMaxSpeed(speed);
           setAcceleration(accel);
 
           turn(180);
 
-          speed = micros()%(int)(MAX_SPEED*3/4)+(int)(MAX_SPEED*1/4);
-          accel = micros()%(int)(MAX_ACCELERATION*3/4)+(int)(MAX_ACCELERATION*1/4);
-          println("speed : ",speed);
-          println("accel : ",accel);
+          speed = micros() % (int)(MAX_SPEED * 3 / 4) + (int)(MAX_SPEED * 1 / 4);
+          accel = micros() % (int)(MAX_ACCELERATION * 3 / 4) + (int)(MAX_ACCELERATION * 1 / 4);
+          println("speed : %i", speed);
+          println("accel : %i", accel);
           setMaxSpeed(speed);
           setAcceleration(accel);
 
@@ -192,24 +178,23 @@ void TaskMatch(void *pvParameters)
         else
         {
           println("Mode Test !");
-          
+
           long speed = 0;
           long accel = 0;
-          setOpponentChecking(true);
-          
-          speed = MAX_SPEED;//micros()%(int)(MAX_SPEED*3/4)+(int)(MAX_SPEED*1/4);
-          accel = MAX_ACCELERATION;//micros()%(int)(MAX_ACCELERATION*3/4)+(int)(MAX_ACCELERATION*1/4);
-          println("speed : ",speed);
-          println("accel : ",accel);
+          // setOpponentChecking(true);
+
+          speed = MAX_SPEED;        // micros()%(int)(MAX_SPEED*3/4)+(int)(MAX_SPEED*1/4);
+          accel = MAX_ACCELERATION; // micros()%(int)(MAX_ACCELERATION*3/4)+(int)(MAX_ACCELERATION*1/4);
+          println("speed : %i", speed);
+          println("accel : %i", accel);
           setMaxSpeed(speed);
           setAcceleration(accel);
-          
+
           turn(45);
           turn(-90);
           turn(45);
           turn(-360);
         }
-      
 
         println("Stop !");
         println("------");
@@ -270,7 +255,7 @@ void TaskMatch(void *pvParameters)
           if (team == Team::TEAM_YELLOW)
           {
             goTo(375, 1710);
-            turnTo(1500, 1250);            
+            turnTo(1500, 1250);
             setMaxSpeed(MAX_SPEED/2);
             setAcceleration(MAX_ACCELERATION/2);
             goTo(1500, 1250);
@@ -298,27 +283,30 @@ void TaskMatch(void *pvParameters)
           }
         }
         */
-        
-        // Restart in waiting State
-        resetMatch();
+
+        // Fin des actions
+        Match::matchState = Match::State::MATCH_STOP;
       }
 
       // Arrêt des PAMI
-      if (matchState == State::MATCH_STOP)
+      if (Match::matchState == Match::State::MATCH_STOP)
       {
+        // Match::matchState = Match::State::MATCH_NONE;
         // Wait for end of match
       }
-      
+
       // Fin du match
-     if (matchState == State::MATCH_END)
-     {
-        useBlink = false;
-     }
+      if (Match::matchState == Match::State::MATCH_END)
+      {
+        // Wait for reset
+        if(IHM::switchMode == 0 && IHM::tirettePresent == 0)
+          Match::matchState = Match::State::MATCH_BOOT;
+        
+      }
     }
     catch (std::exception const &e)
     {
-      print("error : ");
-      println(e.what());
+      printError(e.what());
     }
     vTaskDelay(1);
   }
@@ -337,34 +325,33 @@ void TaskSerial(void *pvParameters)
   {
     try
     {
-      if (teleplotTO.IsTimeOut() && matchState!=State::MATCH_RUN)
+      if (teleplotTO.IsTimeOut() && Match::matchState != Match::State::MATCH_RUN)
       {
-        Printer::teleplot("pos", getCurrentPose());
-        Printer::teleplot("ang", (int)(getCurrentPose().h));
+        // Printer::teleplot("pos", getCurrentPose());
+        // Printer::teleplot("ang", (int)(getCurrentPose().h));
 
-        
         // Countdown
-        if (lastMatchTime != (int)(getMatchTimeSec()))
+        if (lastMatchTime != (int)(Match::getMatchTimeSec()))
         {
-            println("Match Time : ", (int)(getMatchTimeSec()));
-            lastMatchTime = (int)(getMatchTimeSec());
+          println("Match Time : %i", (int)(Match::getMatchTimeSec()));
+          lastMatchTime = (int)(Match::getMatchTimeSec());
         }
         //Printer::teleplot("mapBoundaries", MapBoundaries[0]);
         //Printer::teleplot("mapBoundaries", MapBoundaries[1]);
         //Printer::teleplot("mapBoundaries", MapBoundaries[2]);
         //Printer::teleplot("mapBoundaries", MapBoundaries[3]);
       }
-      
+
       // Check if we get commands from operator via debug serial
       if (ESP32_Helper::HasWaitingCommand())
       {
         Command cmd = ESP32_Helper::GetCommand();
 
-        if(cmd.cmd.startsWith("Pos"))
+        if (cmd.cmd.startsWith("Pos"))
         {
-          print("Pos : x=", getCurrentPose().x);
-          print("  y=", getCurrentPose().y);
-          print("  h=", getCurrentPose().h);
+          print("Pos : x=%f", getCurrentPose().x);
+          print("  y=%f", getCurrentPose().y);
+          print("  h=%f", getCurrentPose().h);
           println();
         }
         if (cmd.cmd.startsWith("Speed"))
@@ -374,10 +361,10 @@ void TaskSerial(void *pvParameters)
           {
             setMaxSpeed(cmd.data[0]);
             //preferences.putInt("Speed",cmd.data[0]);
-            println("Speed : ", getMaxSpeed());
+            println("Speed : %f", getMaxSpeed());
           }
-          println("Motor D speed:", motor_D.maxSpeed());
-          println("Motor G speed:", motor_G.maxSpeed());
+          println("Motor D speed: %f", motor_D.maxSpeed());
+          println("Motor G speed: %f", motor_G.maxSpeed());
         }
         if (cmd.cmd.startsWith("Accel"))
         {
@@ -386,10 +373,10 @@ void TaskSerial(void *pvParameters)
           {
             setAcceleration(cmd.data[0]);
             //preferences.putInt("Accel",cmd.data[0]);
-            println("Accel : ", getAcceleration());
+            println("Accel : %f", getAcceleration());
           }
-          println("Motor D accel:", motor_D.acceleration());
-          println("Motor G accel:", motor_G.acceleration());
+          println("Motor D accel: %f", motor_D.acceleration());
+          println("Motor G accel: %f", motor_G.acceleration());
         }
         if (cmd.cmd.startsWith("Pulse"))
         {
@@ -399,7 +386,7 @@ void TaskSerial(void *pvParameters)
             motor_D.setMinPulseWidth(cmd.data[0]);
             motor_G.setMinPulseWidth(cmd.data[0]);
           }
-          println("setMinPulseWidth:", cmd.data[0]);
+          println("setMinPulseWidth: %i", cmd.data[0]);
         }
         if (cmd.cmd.startsWith("Go"))
         {
@@ -420,19 +407,19 @@ void TaskSerial(void *pvParameters)
         if (cmd.cmd.startsWith("Motor"))
         {
           println("Motor D:");
-          println("speed:", motor_D.speed());
-          println("acceleration:", motor_D.acceleration());
-          println("distanceToGo:", (int)motor_D.distanceToGo());
-          println("targetPosition:", (int)motor_D.targetPosition());
-          println("currentPosition:", (int)motor_D.currentPosition());
+          println("speed: %f", motor_D.speed());
+          println("acceleration: %f", motor_D.acceleration());
+          println("distanceToGo: %i", (int)motor_D.distanceToGo());
+          println("targetPosition: %i", (int)motor_D.targetPosition());
+          println("currentPosition: %i", (int)motor_D.currentPosition());
           // println("computeNewSpeed:",(long)motor_D.computeNewSpeed());
           println("-----");
           println("Motor G:");
-          println("speed:", motor_G.speed());
-          println("acceleration:", motor_G.acceleration());
-          println("distanceToGo:", (int)motor_G.distanceToGo());
-          println("targetPosition:", (int)motor_G.targetPosition());
-          println("currentPosition:", (int)motor_G.currentPosition());
+          println("speed: %f", motor_G.speed());
+          println("acceleration: %f", motor_G.acceleration());
+          println("distanceToGo: %i", (int)motor_G.distanceToGo());
+          println("targetPosition: %i", (int)motor_G.targetPosition());
+          println("currentPosition: %i", (int)motor_G.currentPosition());
           // println("computeNewSpeed:",(long)motor_G.computeNewSpeed());
           println("-----");
         }
@@ -441,9 +428,9 @@ void TaskSerial(void *pvParameters)
           //Blink:0
           //Blink:1
           if (cmd.size > 0)
-          {            
-            useBlink = cmd.data[0];
-            println("Blink : ", useBlink);
+          {
+            IHM::useBlink = cmd.data[0];
+            println("Blink : %i", IHM::useBlink);
           }
         }
         if (cmd.cmd.startsWith("RGB"))
@@ -451,28 +438,28 @@ void TaskSerial(void *pvParameters)
           //RGB:0:255:0
           if (cmd.size == 3)
           {
-            led[0].setRGB(cmd.data[0], cmd.data[1], cmd.data[2]);
-            FastLED.show();
-            print("RGB : ", led[0].red);
-            print(" ", led[0].green);
-            println(" ", led[0].blue);
+            // IHM::led[0].setRGB(cmd.data[0], cmd.data[1], cmd.data[2]);
+            // FastLED.show();
+            // print("RGB : ", led[0].red);
+            // print(" ", led[0].green);
+            // println(" ", led[0].blue);
           }
         }
         if (cmd.cmd.startsWith("HSV"))
         {
           //HSV:0:255:255
-          if (cmd.size == 1)
-          {
-            led[0].setHue(cmd.data[0]);
-          }
-          if (cmd.size == 3)
-          {
-            led[0].setHSV(cmd.data[0], cmd.data[1], cmd.data[2]);
-          }
-          FastLED.show();
-          print("HSV : ", led[0].red);
-          print(" ", led[0].green);
-          println(" ", led[0].blue);
+          //  if (cmd.size == 1)
+          //  {
+          //    led[0].setHue(cmd.data[0]);
+          //  }
+          //  if (cmd.size == 3)
+          //  {
+          //    led[0].setHSV(cmd.data[0], cmd.data[1], cmd.data[2]);
+          //  }
+          //  FastLED.show();
+          //  print("HSV : ", led[0].red);
+          //  print(" ", led[0].green);
+          //  println(" ", led[0].blue);
         }
       }
     }

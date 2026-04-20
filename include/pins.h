@@ -5,7 +5,7 @@
 #include <pins_arduino.h>
 
 //******************** Pins Undefined
-//constexpr size_t PIN_xx = xx;
+constexpr size_t PIN_11 = 11;
 
 //******************** Pins UART - Serial USB Debug
 // https://community.platformio.org/t/esp32-s3-native-usb-interface-and-serial-monitor-missing-first-messages/40377/10
@@ -57,21 +57,8 @@ constexpr size_t PIN_DIR_M3 = 1;
 #define SCL 9
 */
 
-//******************** Pins LED - RGB
-constexpr size_t PIN_RGB_LED = 38;
-constexpr size_t PIN_WS2812_LED = 12;
-
-//******************** Pins IHM
-constexpr size_t PIN_SWITCH = 14;
-constexpr size_t PIN_TEAM = 13;
-constexpr size_t PIN_BAU = 15;
-constexpr size_t PIN_START = 16;
-
 //******************** Pins Selecteur PAMI
 constexpr size_t PIN_PAMI_NUM_1 = 7; // LSB
 constexpr size_t PIN_PAMI_NUM_2 = 6; // MSB
-
-//******************** Pins Sensors
-constexpr size_t PIN_SENSOR_1 = 11;
 
 #endif

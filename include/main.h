@@ -7,8 +7,6 @@
 #include "ESP32_Helper.h"
 
 #include "pins.h"
-#include "match.h"
-#include "ihm.h"
 #include "sensors.h"
 #include "motion.h"
 
