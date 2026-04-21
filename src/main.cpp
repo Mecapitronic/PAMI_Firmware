@@ -1,7 +1,8 @@
 #include "main.h"
 
-using namespace Printer;
 using namespace std;
+using namespace Printer;
+using namespace Hardware_Config;
 
 Preferences preferences;
 Adafruit_INA219 ina219;
@@ -15,9 +16,11 @@ void setup()
   // With higher speed, instructions on I2C take less time
   Wire.begin(SDA, SCL, 400000UL);
 
+  PowerMonitor::Initialisation();
+
   Screen::Initialisation();
   Screen::Logo();
-
+  
   IHM::Initialisation();
   Match::Initialisation();
 
