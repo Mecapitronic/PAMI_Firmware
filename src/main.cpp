@@ -31,7 +31,10 @@ void setup()
   ServoAX12::AddServo(ServoID::VL53, "VL53", ServoPosition::VL53Min, ServoPosition::VL53Max);
   ServoAX12::SetServoPosition(ServoID::VL53, ServoPosition::VL53Pos);
 
-  //delay(2000);
+  
+  ToF_VL53L8CX::Initialisation();
+
+  // delay(2000);
 
   setMaxSpeed(MAX_SPEED);
   setAcceleration(MAX_ACCELERATION);
