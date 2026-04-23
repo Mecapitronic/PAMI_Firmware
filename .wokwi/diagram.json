@@ -3,23 +3,25 @@
   "author": "Mecapitronic",
   "editor": "wokwi",
   "parts": [
-    { "type": "board-esp32-s3-devkitc-1", "id": "esp", "top": -0.18, "left": 4.57, "attrs": {} },
+    { "type": "board-esp32-s3-devkitc-1", "id": "esp", "top": 0, "left": 0, "attrs": {} },
     { "type": "wokwi-neopixel", "id": "rgb1", "top": -61.1, "left": 37.4, "attrs": {} },
     {
       "type": "wokwi-led-ring",
       "id": "ring2",
-      "top": 19.84,
-      "left": -219.61,
-      "attrs": { "pixels": "16" }
+      "top": -18.69,
+      "left": -291.67,
+      "attrs": { "pixels": "24" }
     },
-    { "type": "wokwi-slide-switch", "id": "sw1", "top": 119.6, "left": -64.1, "attrs": {} },
-    { "type": "wokwi-slide-switch", "id": "sw2", "top": 148.4, "left": -102.5, "attrs": {} },
+    { "type": "wokwi-slide-switch", "id": "PIN_BAU", "top": 33.2, "left": -54.5, "attrs": {} },
+    { "type": "wokwi-slide-switch", "id": "PIN_START", "top": 33.2, "left": -92.9, "attrs": {} },
+    { "type": "wokwi-slide-switch", "id": "PIN_TEAM", "top": 244.4, "left": -112.1, "attrs": {} },
+    { "type": "wokwi-slide-switch", "id": "PIN_SWITCH", "top": 244.4, "left": -64.1, "attrs": {} },
     {
-      "type": "wokwi-pushbutton",
-      "id": "btn1",
-      "top": 35,
-      "left": -76.8,
-      "attrs": { "color": "green", "xray": "1" }
+      "type": "board-ssd1306",
+      "id": "oled1",
+      "top": 127.94,
+      "left": 105.83,
+      "attrs": { "i2cAddress": "0x3D" }
     }
   ],
   "connections": [
@@ -31,13 +33,19 @@
     [ "esp:GND.1", "ring2:GND", "black", [ "h-72.34", "v-0.18", "h-38.34" ] ],
     [ "ring2:VCC", "esp:5V", "red", [ "v0" ] ],
     [ "esp:12", "ring2:DIN", "green", [ "v-0.18", "h-91.48" ] ],
-    [ "esp:13", "sw1:1", "green", [ "h0" ] ],
-    [ "esp:3V3.1", "sw1:2", "green", [ "v0", "h-38.45", "v153.6", "h-38.4" ] ],
-    [ "sw1:2", "sw2:2", "green", [ "v0" ] ],
-    [ "sw2:1", "esp:14", "green", [ "v0" ] ],
-    [ "btn1:1.r", "esp:16", "green", [ "v0" ] ],
-    [ "esp:3V3.1", "btn1:1.l", "green", [ "v0", "h-86.45" ] ]
+    [ "PIN_BAU:3", "esp:15", "limegreen", [ "v0" ] ],
+    [ "PIN_START:3", "esp:16", "limegreen", [ "v0" ] ],
+    [ "PIN_START:2", "esp:GND.1", "black", [ "v0" ] ],
+    [ "PIN_BAU:2", "esp:GND.1", "black", [ "v0" ] ],
+    [ "PIN_SWITCH:2", "esp:GND.1", "black", [ "v9.6", "h38.5", "v-57.6" ] ],
+    [ "PIN_TEAM:2", "esp:GND.1", "black", [ "v19.2", "h86.5", "v-67.2" ] ],
+    [ "PIN_SWITCH:1", "esp:14", "green", [ "v0", "h-9.6", "v-67.2" ] ],
+    [ "PIN_TEAM:1", "esp:13", "green", [ "v0", "h-19.2", "v-76.8" ] ],
+    [ "esp:8", "oled1:SDA", "green", [ "h-14.68", "v-9.78", "h182.4" ] ],
+    [ "esp:9", "oled1:SCL", "green", [ "h-24.28", "v-48.18", "h182.4" ] ],
+    [ "esp:GND.2", "oled1:GND", "black", [ "v-0.18", "h33.37" ] ],
+    [ "esp:5V", "oled1:VCC", "red", [ "h100.52", "v-105.78", "h48" ] ]
   ],
-  "serialMonitor": { "display": "auto", "newline": "lf", "convertEol": false },
+  "serialMonitor": { "convertEol": false, "display": "auto", "newline": "lf" },
   "dependencies": {}
 }
