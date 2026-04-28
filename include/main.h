@@ -1,8 +1,6 @@
 #ifndef MAIN_H
 #define MAIN_H
 
-#include "Hardware_Config.h"
-
 #include "ESP32_Hardware.h"
 #include "ESP32_Helper.h"
 
