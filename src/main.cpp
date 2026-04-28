@@ -54,18 +54,29 @@ void setup()
   //   println("Accel : %i", accelPref);
   // }
 
-  /* Task function. */
-  /* name of task. */
-  /* Stack size of task */
-  /* parameter of the task */
-  /* priority of the task */
-  /* Task handle to keep track of created task */
-  /* pin task to core 0 */
-  xTaskCreatePinnedToCore(TaskMatch, "TaskMatch", 20000, NULL, 10, &Task1, 0);
-  xTaskCreatePinnedToCore(TaskSerial, "TaskSerial", 20000, NULL, 5, &Task2, 0);
+  TaskThread(TaskMatch, "TaskMatch", 20000, 15, 0);
+  TaskThread(TaskTeleplot, "TaskTeleplot", 5000, 1, 0);
+  TaskThread(TaskHandleCommand, "TaskHandleCommand", 10000, 15, 0);
+
+  TaskThread(TaskLoop, "TaskLoop", 20000, 20, 1);
 }
 
 void loop()
+{
+  // HACK Vérifier qu'on n'utilise pas les serialEvent !!!
+  // C:\Users\xxx\.platformio\packages\framework-arduinoespressif32\cores\esp32\main.cpp
+  // https://github.com/espressif/arduino-esp32/blob/master/cores/esp32/main.cpp
+  vTaskDelete(NULL); // Supprime immédiatement le task Arduino "loop"
+}
+
+void TaskLoop(void *pvParameters)
+{
+  Chrono chrono("Loop", 10000);
+
+  while (true)
+  {
+    chrono.Start();
+    try
 {
   if (Match::matchState != Match::State::MATCH_STOP && Match::matchState != Match::State::MATCH_END && (motor_D.isRunning() || motor_G.isRunning()))
   {
@@ -77,14 +88,26 @@ void loop()
     disableMotors();
   }
 }
+catch (const std::exception &e)
+    {
+      printError(e.what());
+    }
+    if (chrono.Check())
+    {
+      printChrono(chrono);
+    }
+    vTaskDelay(1);
+  }
+  // led_strip.update();
+}
 
-// Note the 1 Tick delay, this is need  so the watchdog doesn't get confused
 void TaskMatch(void *pvParameters)
 {
   println("Start TaskMatch");
-
+Chrono chrono("MainMatch", 1000);
   while (1)
   {
+chrono.Start();
     try
     {
       // En attente de retrait de la tirette pour démarrer le match
@@ -306,30 +329,35 @@ void TaskMatch(void *pvParameters)
       if (Match::matchState == Match::State::MATCH_END)
       {
         // Wait for reset
-        if(IHM::switchMode == 0 && IHM::tirettePresent == 0)
+        if (IHM::switchMode == 0 && IHM::tirettePresent == 0)
           Match::matchState = Match::State::MATCH_BOOT;
-        
-      }
+              }
     }
     catch (std::exception const &e)
     {
       printError(e.what());
     }
-    vTaskDelay(1);
+if (chrono.Check())
+    {
+      printChrono(chrono);
+    }
+    vTaskDelay(10);
   }
 }
 
 Pose MapBoundaries[] = {{0, 0, 0}, {0, 2000, 0}, {3000, 2000, 0}, {3000, 0, 0}};
-Timeout teleplotTO;
-// Note the 1 Tick delay, this is need so the watchdog doesn't get confused
-void TaskSerial(void *pvParameters)
-{
-  println("Start TaskSerial");
-  teleplotTO.Start(500);
-  int lastMatchTime = 0;
 
-  while (1)
+void TaskTeleplot(void *pvParameters)
+{
+int lastMatchTime = 0;
+  println("Start TaskTeleplot");
+Timeout teleplotTO;
+  teleplotTO.Start(500);
+  Chrono chrono("Teleplot", 1000);
+
+  while (true)
   {
+chrono.Start();
     try
     {
       if (teleplotTO.IsTimeOut() && Match::matchState != Match::State::MATCH_RUN)
@@ -340,15 +368,33 @@ void TaskSerial(void *pvParameters)
         // Countdown
         if (lastMatchTime != (int)(Match::getMatchTimeSec()))
         {
-          println("Match Time : %i", (int)(Match::getMatchTimeSec()));
+//           println("Match Time : %i", (int)(Match::getMatchTimeSec()));
           lastMatchTime = (int)(Match::getMatchTimeSec());
         }
-        //Printer::teleplot("mapBoundaries", MapBoundaries[0]);
-        //Printer::teleplot("mapBoundaries", MapBoundaries[1]);
-        //Printer::teleplot("mapBoundaries", MapBoundaries[2]);
-        //Printer::teleplot("mapBoundaries", MapBoundaries[3]);
-      }
+        }
+    }
+    catch (const std::exception &e)
+    {
+      printError(e.what());
+    }
+    if (chrono.Check())
+    {
+      printChrono(chrono);
+    }
+    vTaskDelay(10);
+  }
+}
 
+void TaskHandleCommand(void *pvParameters)
+{
+  println("Start TaskHandleCommand");
+  Chrono chrono("HandleCommand", 1000);
+
+  while (true)
+  {
+    chrono.Start();
+    try
+    {
       // Check if we get commands from operator via debug serial
       if (ESP32_Helper::HasWaitingCommand())
       {
@@ -475,7 +521,10 @@ void TaskSerial(void *pvParameters)
       print("error : ");
       println(e.what());
     }
-    vTaskDelay(1);
-    // vTaskDelay(10 / portTICK_PERIOD_MS);
+    if (chrono.Check())
+    {
+      printChrono(chrono);
+    }
+vTaskDelay(10);
   }
 }
