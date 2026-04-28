@@ -514,6 +514,10 @@ void TaskHandleCommand(void *pvParameters)
           //  print(" ", led[0].green);
           //  println(" ", led[0].blue);
         }
+if (cmd.cmd.startsWith("AX12"))
+        {
+          ServoAX12::HandleCommand(cmd);
+        }
       }
     }
     catch (std::exception const &e)
