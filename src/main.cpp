@@ -30,7 +30,8 @@ void setup()
   ServoAX12::Initialisation(SERIAL_SERVO, RX_SERVO, TX_SERVO, PIN_SERVO_DIR);
   ServoAX12::AddServo(ServoID::VL53, "VL53", ServoPosition::VL53Min, ServoPosition::VL53Max);
   ServoAX12::SetServoPosition(ServoID::VL53, ServoPosition::VL53Pos);
-
+  ServoAX12::AddServo(ServoID::Bras, "Bras", ServoPosition::BrasMin, ServoPosition::BrasMax);
+  ServoAX12::SetServoPosition(ServoID::Bras, ServoPosition::BrasPos);
   
   ToF_VL53L8CX::Initialisation();
 
