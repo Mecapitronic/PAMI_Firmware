@@ -1,4 +1,5 @@
 #include "main.h"
+#include <esp_task_wdt.h>
 
 using namespace std;
 using namespace Printer;
@@ -19,8 +20,7 @@ void setup()
   PowerMonitor::Initialisation();
 
   Screen::Initialisation();
-  Screen::Logo();
-  
+
   IHM::Initialisation();
   Match::Initialisation();
 
@@ -32,8 +32,9 @@ void setup()
   ServoAX12::SetServoPosition(ServoID::VL53, ServoPosition::VL53Pos);
   ServoAX12::AddServo(ServoID::Bras, "Bras", ServoPosition::BrasMin, ServoPosition::BrasMax);
   ServoAX12::SetServoPosition(ServoID::Bras, ServoPosition::BrasPos);
-  
-  ToF_VL53L8CX::Initialisation();
+  ESP32_Helper::RegisterCommandHandler("AX12", ServoAX12::HandleCommand, ServoAX12::PrintCommandHelp);
+
+  //ToF_VL53L8CX::Initialisation();
 
   // delay(2000);
 
@@ -55,7 +56,7 @@ void setup()
   // }
 
   TaskThread(TaskMatch, "TaskMatch", 20000, 15, 0);
-  TaskThread(TaskTeleplot, "TaskTeleplot", 5000, 1, 0);
+  //TaskThread(TaskTeleplot, "TaskTeleplot", 5000, 1, 0);
   TaskThread(TaskHandleCommand, "TaskHandleCommand", 10000, 15, 0);
 
   TaskThread(TaskLoop, "TaskLoop", 20000, 20, 1);
@@ -73,22 +74,25 @@ void TaskLoop(void *pvParameters)
 {
   Chrono chrono("Loop", 10000);
 
+  // Ajouter la tâche courante au WDT système
+  esp_task_wdt_add(NULL);
+
   while (true)
   {
     chrono.Start();
     try
-{
-  if (Match::matchState != Match::State::MATCH_STOP && Match::matchState != Match::State::MATCH_END && (motor_D.isRunning() || motor_G.isRunning()))
-  {
-    enableMotors();
-    updateMotors();
-  }
-  else
-  {
-    disableMotors();
-  }
-}
-catch (const std::exception &e)
+    {
+      if (Match::matchState != Match::State::MATCH_STOP && Match::matchState != Match::State::MATCH_END && (motor_D.isRunning() || motor_G.isRunning()))
+      {
+        enableMotors();
+        updateMotors();
+      }
+      else
+      {
+        disableMotors();
+      }
+    }
+    catch (const std::exception &e)
     {
       printError(e.what());
     }
@@ -96,20 +100,34 @@ catch (const std::exception &e)
     {
       printChrono(chrono);
     }
+    
+    // Reset le watchdog pour empêcher le reset de l'esp32
+    esp_task_wdt_reset();
     vTaskDelay(1);
   }
-  // led_strip.update();
 }
 
 void TaskMatch(void *pvParameters)
 {
   println("Start TaskMatch");
-Chrono chrono("MainMatch", 1000);
+  Chrono chrono("MainMatch", 1000);
   while (1)
   {
-chrono.Start();
+    chrono.Start();
     try
     {
+      if(Match::matchState == Match::State::MATCH_BOOT)
+      {        
+        // Lecture do codage du numéro de PAMI
+        int numPamiTmp = ReadNumPami();
+        if (numPamiTmp != numPami)
+        {
+          numPami = numPamiTmp;
+          println("N° PAMI : %i", numPami);
+          Wifi_Helper::SetLocalIP("192.168.137." + String(100 + numPami + 1));
+        }
+      }
+
       // En attente de retrait de la tirette pour démarrer le match
       if (Match::matchState == Match::State::MATCH_WAIT)
       {
@@ -331,13 +349,13 @@ chrono.Start();
         // Wait for reset
         if (IHM::switchMode == 0 && IHM::tirettePresent == 0)
           Match::matchState = Match::State::MATCH_BOOT;
-              }
+      }
     }
     catch (std::exception const &e)
     {
       printError(e.what());
     }
-if (chrono.Check())
+    if (chrono.Check())
     {
       printChrono(chrono);
     }
@@ -349,29 +367,29 @@ Pose MapBoundaries[] = {{0, 0, 0}, {0, 2000, 0}, {3000, 2000, 0}, {3000, 0, 0}};
 
 void TaskTeleplot(void *pvParameters)
 {
-int lastMatchTime = 0;
+  int lastMatchTime = 0;
   println("Start TaskTeleplot");
-Timeout teleplotTO;
-  teleplotTO.Start(500);
+  Timeout teleplotTO;
+  teleplotTO.Start(50);
   Chrono chrono("Teleplot", 1000);
 
   while (true)
   {
-chrono.Start();
+    chrono.Start();
     try
     {
       if (teleplotTO.IsTimeOut() && Match::matchState != Match::State::MATCH_RUN)
       {
-        // Printer::teleplot("pos", getCurrentPose());
-        // Printer::teleplot("ang", (int)(getCurrentPose().h));
+        //Printer::teleplot("pos", getCurrentPose());
+        //Printer::teleplot("ang", (int)(getCurrentPose().h));
 
         // Countdown
         if (lastMatchTime != (int)(Match::getMatchTimeSec()))
         {
-//           println("Match Time : %i", (int)(Match::getMatchTimeSec()));
+          println("Match Time : %i", (int)(Match::getMatchTimeSec()));
           lastMatchTime = (int)(Match::getMatchTimeSec());
         }
-        }
+      }
     }
     catch (const std::exception &e)
     {
@@ -381,7 +399,7 @@ chrono.Start();
     {
       printChrono(chrono);
     }
-    vTaskDelay(10);
+    vTaskDelay(50);
   }
 }
 
@@ -400,14 +418,14 @@ void TaskHandleCommand(void *pvParameters)
       {
         Command cmd = ESP32_Helper::GetCommand();
 
-        if (cmd.cmd.startsWith("Pos"))
+        if (cmd.cmdStartsWith("Pos"))
         {
           print("Pos : x=%f", getCurrentPose().x);
           print("  y=%f", getCurrentPose().y);
           print("  h=%f", getCurrentPose().h);
           println();
         }
-        if (cmd.cmd.startsWith("Speed"))
+        if (cmd.cmdStartsWith("Speed"))
         {
           // print("Speed : ", cmd);
           if (cmd.size > 0)
@@ -419,7 +437,7 @@ void TaskHandleCommand(void *pvParameters)
           println("Motor D speed: %f", motor_D.maxSpeed());
           println("Motor G speed: %f", motor_G.maxSpeed());
         }
-        if (cmd.cmd.startsWith("Accel"))
+        if (cmd.cmdStartsWith("Accel"))
         {
           // print("Accel : ", cmd);
           if (cmd.size > 0)
@@ -431,7 +449,7 @@ void TaskHandleCommand(void *pvParameters)
           println("Motor D accel: %f", motor_D.acceleration());
           println("Motor G accel: %f", motor_G.acceleration());
         }
-        if (cmd.cmd.startsWith("Pulse"))
+        if (cmd.cmdStartsWith("Pulse"))
         {
           // print("Pulse : ", cmd);
           if (cmd.size > 0)
@@ -441,7 +459,7 @@ void TaskHandleCommand(void *pvParameters)
           }
           println("setMinPulseWidth: %i", cmd.data[0]);
         }
-        if (cmd.cmd.startsWith("Go"))
+        if (cmd.cmdStartsWith("Go"))
         {
           // print("Go : ", cmd);
           if (cmd.size == 1)
@@ -451,13 +469,13 @@ void TaskHandleCommand(void *pvParameters)
           if (cmd.size == 3)
             goTo(cmd.data[0], cmd.data[1], cmd.data[2]);
         }
-        if (cmd.cmd.startsWith("Turn"))
+        if (cmd.cmdStartsWith("Turn"))
         {
           // print("Turn : ", cmd);
           if (cmd.size > 0)
             turn(cmd.data[0]);
         }
-        if (cmd.cmd.startsWith("Motor"))
+        if (cmd.cmdStartsWith("Motor"))
         {
           println("Motor D:");
           println("speed: %f", motor_D.speed());
@@ -476,7 +494,7 @@ void TaskHandleCommand(void *pvParameters)
           // println("computeNewSpeed:",(long)motor_G.computeNewSpeed());
           println("-----");
         }
-        if (cmd.cmd.startsWith("Blink"))
+        if (cmd.cmdStartsWith("Blink"))
         {
           //Blink:0
           //Blink:1
@@ -486,7 +504,7 @@ void TaskHandleCommand(void *pvParameters)
             println("Blink : %i", IHM::useBlink);
           }
         }
-        if (cmd.cmd.startsWith("RGB"))
+        if (cmd.cmdStartsWith("RGB"))
         {
           //RGB:0:255:0
           if (cmd.size == 3)
@@ -498,7 +516,7 @@ void TaskHandleCommand(void *pvParameters)
             // println(" ", led[0].blue);
           }
         }
-        if (cmd.cmd.startsWith("HSV"))
+        if (cmd.cmdStartsWith("HSV"))
         {
           //HSV:0:255:255
           //  if (cmd.size == 1)
@@ -514,10 +532,6 @@ void TaskHandleCommand(void *pvParameters)
           //  print(" ", led[0].green);
           //  println(" ", led[0].blue);
         }
-if (cmd.cmd.startsWith("AX12"))
-        {
-          ServoAX12::HandleCommand(cmd);
-        }
       }
     }
     catch (std::exception const &e)
@@ -529,6 +543,6 @@ if (cmd.cmd.startsWith("AX12"))
     {
       printChrono(chrono);
     }
-vTaskDelay(10);
+    vTaskDelay(10);
   }
 }

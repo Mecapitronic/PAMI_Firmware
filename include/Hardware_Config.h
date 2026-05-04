@@ -1,6 +1,8 @@
 #ifndef HARDWARE_CONFIG_H
 #define HARDWARE_CONFIG_H
 #include <cstddef>
+#include <HardwareSerial.h>
+#include <pins_arduino.h>
 // Copy this file to your include project folder and change it's name to Hardware_Config.h
 // Then you can modify the one in your project at your convenience
 
@@ -33,6 +35,12 @@ namespace Hardware_Config
         BroadCast = 0xFE    // Broadcast ID pour communiquer avec tous les servos
     };
 
+    //******************** Pins SERVO
+    #define SERIAL_SERVO Serial1
+    constexpr size_t RX_SERVO = 18;
+    constexpr size_t TX_SERVO = 17;
+    constexpr size_t PIN_SERVO_DIR = 10;
+    
     //******************** Pins IHM
     constexpr size_t PIN_SWITCH = 14;
     constexpr size_t PIN_TEAM = 13;
@@ -45,5 +53,10 @@ namespace Hardware_Config
 
     //******************** Pins Enable Power
     constexpr size_t PIN_EN_MCU = 3;
+    
+    //******************** Pins TwoWire I²C
+    constexpr size_t PIN_SDA = SDA;
+    constexpr size_t PIN_SCL = SCL;
+    
 }
 #endif
