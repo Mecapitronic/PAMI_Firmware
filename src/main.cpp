@@ -16,13 +16,15 @@ void setup()
   // Normal speed is 100 000
   // With higher speed, instructions on I2C take less time
   Wire.begin(SDA, SCL, 400000UL);
-
-  PowerMonitor::Initialisation();
-
+  
+  Power::Initialisation();
   Screen::Initialisation();
-
   IHM::Initialisation();
   Match::Initialisation();
+  
+  //  We need it to init the servos  
+  Power::UpdateMeasurements();
+  Power::EnablePower();
 
   initSensor();
   initMotion();
