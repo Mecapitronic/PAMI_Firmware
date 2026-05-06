@@ -5,7 +5,6 @@ using namespace std;
 using namespace Printer;
 using namespace Hardware_Config;
 
-Preferences preferences;
 Adafruit_INA219 ina219;
 
 void setup()
@@ -13,55 +12,27 @@ void setup()
   ESP32_Helper::Initialisation();
   println("PAMI Firmware");
 
-  // Normal speed is 100 000
-  // With higher speed, instructions on I2C take less time
-  Wire.begin(SDA, SCL, 400000UL);
-  
-  Power::Initialisation();
-  Screen::Initialisation();
-  IHM::Initialisation();
-  Match::Initialisation();
+  Hardware::Initialisation();
   
   //  We need it to init the servos  
   Power::UpdateMeasurements();
   Power::EnablePower();
 
   initSensor();
-  initMotion();
+  Motion::Initialisation();
 
-  ServoAX12::Initialisation(SERIAL_SERVO, RX_SERVO, TX_SERVO, PIN_SERVO_DIR);
   ServoAX12::AddServo(ServoID::VL53, "VL53", ServoPosition::VL53Min, ServoPosition::VL53Max);
   ServoAX12::SetServoPosition(ServoID::VL53, ServoPosition::VL53Pos);
   ServoAX12::AddServo(ServoID::Bras, "Bras", ServoPosition::BrasMin, ServoPosition::BrasMax);
   ServoAX12::SetServoPosition(ServoID::Bras, ServoPosition::BrasPos);
   ESP32_Helper::RegisterCommandHandler("AX12", ServoAX12::HandleCommand, ServoAX12::PrintCommandHelp);
 
-  //ToF_VL53L8CX::Initialisation();
 
-  // delay(2000);
 
-  setMaxSpeed(MAX_SPEED);
-  setAcceleration(MAX_ACCELERATION);
-
-  //int speedPref = preferences.getInt("Speed",0);
-  //int accelPref = preferences.getInt("Accel",0);
-
-  // if(speedPref != 0)
-  // {
-  //   setMaxSpeed(speedPref);
-  //   println("Speed : %i", speedPref);
-  // }
-  // if(accelPref != 0)
-  // {
-  //   setAcceleration(accelPref);
-  //   println("Accel : %i", accelPref);
-  // }
 
   TaskThread(TaskMatch, "TaskMatch", 20000, 15, 0);
-  //TaskThread(TaskTeleplot, "TaskTeleplot", 5000, 1, 0);
+  TaskThread(TaskTeleplot, "TaskTeleplot", 5000, 1, 0);
   TaskThread(TaskHandleCommand, "TaskHandleCommand", 10000, 15, 0);
-
-  TaskThread(TaskLoop, "TaskLoop", 20000, 20, 1);
 }
 
 void loop()
@@ -70,43 +41,6 @@ void loop()
   // C:\Users\xxx\.platformio\packages\framework-arduinoespressif32\cores\esp32\main.cpp
   // https://github.com/espressif/arduino-esp32/blob/master/cores/esp32/main.cpp
   vTaskDelete(NULL); // Supprime immédiatement le task Arduino "loop"
-}
-
-void TaskLoop(void *pvParameters)
-{
-  Chrono chrono("Loop", 10000);
-
-  // Ajouter la tâche courante au WDT système
-  esp_task_wdt_add(NULL);
-
-  while (true)
-  {
-    chrono.Start();
-    try
-    {
-      if (Match::matchState != Match::State::MATCH_STOP && Match::matchState != Match::State::MATCH_END && (motor_D.isRunning() || motor_G.isRunning()))
-      {
-        enableMotors();
-        updateMotors();
-      }
-      else
-      {
-        disableMotors();
-      }
-    }
-    catch (const std::exception &e)
-    {
-      printError(e.what());
-    }
-    if (chrono.Check())
-    {
-      printChrono(chrono);
-    }
-    
-    // Reset le watchdog pour empêcher le reset de l'esp32
-    esp_task_wdt_reset();
-    vTaskDelay(1);
-  }
 }
 
 void TaskMatch(void *pvParameters)
@@ -145,9 +79,9 @@ void TaskMatch(void *pvParameters)
         // Start Position
         // Save Y position and orientation
 
-        setCurrentY(0);
-        setCurrentX(CENTER_POSITION_MM);
-        setCurrentRot(0);
+        Motion::SetCurrentY(0);
+        Motion::SetCurrentX(Motion::centerPositionMm);
+        Motion::SetCurrentRot(0);
 
         //   if (numPami == 0)
         //     setCurrentY(1924);
@@ -162,12 +96,12 @@ void TaskMatch(void *pvParameters)
 
         // if (team == Team::TEAM_YELLOW)
         // {
-        //   setCurrentX(CENTER_POSITION_MM);
+        //   setCurrentX(Motion::centerPositionMm);
         //   setCurrentRot(0);
         // }
         // else
         // {
-        //   setCurrentX(3000-CENTER_POSITION_MM);
+        //   setCurrentX(3000-Motion::centerPositionMm);
         //   setCurrentRot(180);
         // }
       }
@@ -196,34 +130,34 @@ void TaskMatch(void *pvParameters)
           println("Mode Match !");
           long speed = 0;
           long accel = 0;
-          // setOpponentChecking(true);
+          // Motion::setOpponentChecking(true);
 
-          speed = micros() % (int)(MAX_SPEED * 3 / 4) + (int)(MAX_SPEED * 1 / 4);
-          accel = micros() % (int)(MAX_ACCELERATION * 3 / 4) + (int)(MAX_ACCELERATION * 1 / 4);
+          speed = micros() % (int)(Motion::maxSpeed * 3 / 4) + (int)(Motion::maxSpeed * 1 / 4);
+          accel = micros() % (int)(Motion::maxAcceleration * 3 / 4) + (int)(Motion::maxAcceleration * 1 / 4);
           println("speed : %i", speed);
           println("accel : %i", accel);
-          setMaxSpeed(speed);
-          setAcceleration(accel);
+          Motion::SetMaxSpeed(speed);
+          Motion::SetAcceleration(accel);
 
-          go(800);
+          Motion::Go(800);
 
-          speed = micros() % (int)(MAX_SPEED * 3 / 4) + (int)(MAX_SPEED * 1 / 4);
-          accel = micros() % (int)(MAX_ACCELERATION * 3 / 4) + (int)(MAX_ACCELERATION * 1 / 4);
+          speed = micros() % (int)(Motion::maxSpeed * 3 / 4) + (int)(Motion::maxSpeed * 1 / 4);
+          accel = micros() % (int)(Motion::maxAcceleration * 3 / 4) + (int)(Motion::maxAcceleration * 1 / 4);
           println("speed : %i", speed);
           println("accel : %i", accel);
-          setMaxSpeed(speed);
-          setAcceleration(accel);
+          Motion::SetMaxSpeed(speed);
+          Motion::SetAcceleration(accel);
 
-          turn(180);
+          Motion::Turn(180);
 
-          speed = micros() % (int)(MAX_SPEED * 3 / 4) + (int)(MAX_SPEED * 1 / 4);
-          accel = micros() % (int)(MAX_ACCELERATION * 3 / 4) + (int)(MAX_ACCELERATION * 1 / 4);
+          speed = micros() % (int)(Motion::maxSpeed * 3 / 4) + (int)(Motion::maxSpeed * 1 / 4);
+          accel = micros() % (int)(Motion::maxAcceleration * 3 / 4) + (int)(Motion::maxAcceleration * 1 / 4);
           println("speed : %i", speed);
           println("accel : %i", accel);
-          setMaxSpeed(speed);
-          setAcceleration(accel);
+          Motion::SetMaxSpeed(speed);
+          Motion::SetAcceleration(accel);
 
-          go(1000);
+          Motion::Go(1000);
         }
         else
         {
@@ -231,19 +165,19 @@ void TaskMatch(void *pvParameters)
 
           long speed = 0;
           long accel = 0;
-          // setOpponentChecking(true);
+          // Motion::setOpponentChecking(true);
 
-          speed = MAX_SPEED;        // micros()%(int)(MAX_SPEED*3/4)+(int)(MAX_SPEED*1/4);
-          accel = MAX_ACCELERATION; // micros()%(int)(MAX_ACCELERATION*3/4)+(int)(MAX_ACCELERATION*1/4);
+          speed = Motion::maxSpeed;        // micros()%(int)(Motion::maxSpeed*3/4)+(int)(Motion::maxSpeed*1/4);
+          accel = Motion::maxAcceleration; // micros()%(int)(Motion::maxAcceleration*3/4)+(int)(Motion::maxAcceleration*1/4);
           println("speed : %i", speed);
           println("accel : %i", accel);
-          setMaxSpeed(speed);
-          setAcceleration(accel);
+          Motion::SetMaxSpeed(speed);
+          Motion::SetAcceleration(accel);
 
-          turn(45);
-          turn(-90);
-          turn(45);
-          turn(-360);
+          Motion::Turn(45);
+          Motion::Turn(-90);
+          Motion::Turn(45);
+          Motion::Turn(-360);
         }
 
         println("Stop !");
@@ -252,36 +186,36 @@ void TaskMatch(void *pvParameters)
         /*
         if (numPami == 0)
         {
-          setOpponentChecking(true);
+          Motion::SetOpponentChecking(true);
           if (team == Team::TEAM_YELLOW)
           {
-            goTo(647, 1924);
-            setMaxSpeed(MAX_SPEED/3);
-            setAcceleration(MAX_ACCELERATION/3);
-            goTo(1250, 1924);
-            setMaxSpeed(MAX_SPEED/2);
-            setAcceleration(MAX_ACCELERATION/2);
-            turnTo(1250, 1580);
-            go(-100);
-            setCurrentY(2000-CENTER_POSITION_MM);
-            setMaxSpeed(MAX_SPEED);
-            setAcceleration(MAX_ACCELERATION);
-            goTo(1250, 1580);
+            Motion::GoTo(647, 1924);
+            Motion::SetMaxSpeed(Motion::maxSpeed/3);
+            Motion::SetAcceleration(Motion::maxAcceleration/3);
+            Motion::GoTo(1250, 1924);
+            Motion::SetMaxSpeed(Motion::maxSpeed/2);
+            Motion::SetAcceleration(Motion::maxAcceleration/2);
+            Motion::TurnTo(1250, 1580);
+            Motion::Go(-100);
+            Motion::SetCurrentY(2000-Motion::centerPositionMm);
+            Motion::SetMaxSpeed(Motion::maxSpeed);
+            Motion::SetAcceleration(Motion::maxAcceleration);
+            Motion::GoTo(1250, 1580);
           }
           else
           {
-            goTo(3000 - 647, 1924);
-            setMaxSpeed(MAX_SPEED/3);
-            setAcceleration(MAX_ACCELERATION/3);
-            goTo(3000 - 1250, 1924);
-            setMaxSpeed(MAX_SPEED/2);
-            setAcceleration(MAX_ACCELERATION/2);
-            turnTo(3000 - 1250, 1580);
-            go(-100);
-            setCurrentY(2000-CENTER_POSITION_MM);
-            setMaxSpeed(MAX_SPEED);
-            setAcceleration(MAX_ACCELERATION);
-            goTo(3000 - 1250, 1580);
+            Motion::GoTo(3000 - 647, 1924);
+            Motion::SetMaxSpeed(Motion::maxSpeed/3);
+            Motion::SetAcceleration(Motion::maxAcceleration/3);
+            Motion::GoTo(3000 - 1250, 1924);
+            Motion::SetMaxSpeed(Motion::maxSpeed/2);
+            Motion::SetAcceleration(Motion::maxAcceleration/2);
+            Motion::TurnTo(3000 - 1250, 1580);
+            Motion::Go(-100);
+            Motion::SetCurrentY(2000-Motion::centerPositionMm);
+            Motion::SetMaxSpeed(Motion::maxSpeed);
+            Motion::SetAcceleration(Motion::maxAcceleration);
+            Motion::GoTo(3000 - 1250, 1580);
           }
         }
         else if (numPami == 1)
@@ -289,47 +223,47 @@ void TaskMatch(void *pvParameters)
           delay(3000);
           if (team == Team::TEAM_YELLOW)
           {
-            goTo(350, 1817);
-            turnTo(750, 1500);
-            goTo(750, 1500);
+            Motion::GoTo(350, 1817);
+            Motion::TurnTo(750, 1500);
+            Motion::GoTo(750, 1500);
           }
           else
           {
-            goTo(3000 - 350, 1817);
-            turnTo(3000 - 750, 1500);
-            goTo(3000 - 750, 1500);
+            Motion::GoTo(3000 - 350, 1817);
+            Motion::TurnTo(3000 - 750, 1500);
+            Motion::GoTo(3000 - 750, 1500);
           }
         }
         else if (numPami == 2)
         {
           if (team == Team::TEAM_YELLOW)
           {
-            goTo(375, 1710);
-            turnTo(1500, 1250);
-            setMaxSpeed(MAX_SPEED/2);
-            setAcceleration(MAX_ACCELERATION/2);
-            goTo(1500, 1250);
+            Motion::GoTo(375, 1710);
+            Motion::TurnTo(1500, 1250);
+            Motion::SetMaxSpeed(Motion::maxSpeed/2);
+            Motion::SetAcceleration(Motion::maxAcceleration/2);
+            Motion::GoTo(1500, 1250);
           }
           else
           {
-            goTo(3000 - 375, 1710);
-            turnTo(3000 - 1500, 1250);
-            setMaxSpeed(MAX_SPEED/2);
-            setAcceleration(MAX_ACCELERATION/2);
-            goTo(3000 - 1500, 1250);
+            Motion::GoTo(3000 - 375, 1710);
+            Motion::TurnTo(3000 - 1500, 1250);
+            Motion::SetMaxSpeed(Motion::maxSpeed/2);
+            Motion::SetAcceleration(Motion::maxAcceleration/2);
+            Motion::GoTo(3000 - 1500, 1250);
           }
         }
         else if (numPami == 3)
         {
           if (team == Team::TEAM_YELLOW)
           {
-            goTo(550, 1603);
-            turnTo(1500, 1250);
+            Motion::GoTo(550, 1603);
+            Motion::TurnTo(1500, 1250);
           }
           else
           {
-            goTo(3000 - 550, 1603);
-            turnTo(3000 - 1500, 1250);
+            Motion::GoTo(3000 - 550, 1603);
+            Motion::TurnTo(3000 - 1500, 1250);
           }
         }
         */
@@ -380,10 +314,13 @@ void TaskTeleplot(void *pvParameters)
     chrono.Start();
     try
     {
-      if (teleplotTO.IsTimeOut() && Match::matchState != Match::State::MATCH_RUN)
+      if (teleplotTO.IsTimeOut())
       {
-        //Printer::teleplot("pos", getCurrentPose());
-        //Printer::teleplot("ang", (int)(getCurrentPose().h));
+        const PoseF pose = Motion::GetCurrentPose();
+        Printer::teleplot("pos_x", pose.x);
+        Printer::teleplot("pos_y", pose.y);
+        Printer::teleplot("speed_D", Motion::motor_D.speed());
+        Printer::teleplot("speed_G", Motion::motor_G.speed());
 
         // Countdown
         if (lastMatchTime != (int)(Match::getMatchTimeSec()))
@@ -422,9 +359,9 @@ void TaskHandleCommand(void *pvParameters)
 
         if (cmd.cmdStartsWith("Pos"))
         {
-          print("Pos : x=%f", getCurrentPose().x);
-          print("  y=%f", getCurrentPose().y);
-          print("  h=%f", getCurrentPose().h);
+          print("Pos : x=%f", Motion::GetCurrentPose().x);
+          print("  y=%f", Motion::GetCurrentPose().y);
+          print("  h=%f", Motion::GetCurrentPose().h);
           println();
         }
         if (cmd.cmdStartsWith("Speed"))
@@ -432,68 +369,58 @@ void TaskHandleCommand(void *pvParameters)
           // print("Speed : ", cmd);
           if (cmd.size > 0)
           {
-            setMaxSpeed(cmd.data[0]);
+            Motion::SetMaxSpeed(cmd.data[0]);
             //preferences.putInt("Speed",cmd.data[0]);
-            println("Speed : %f", getMaxSpeed());
+            println("Speed : %f", Motion::GetMaxSpeed());
           }
-          println("Motor D speed: %f", motor_D.maxSpeed());
-          println("Motor G speed: %f", motor_G.maxSpeed());
+          println("Motor D speed: %f", Motion::motor_D.maxSpeed());
+          println("Motor G speed: %f", Motion::motor_G.maxSpeed());
         }
         if (cmd.cmdStartsWith("Accel"))
         {
           // print("Accel : ", cmd);
           if (cmd.size > 0)
           {
-            setAcceleration(cmd.data[0]);
+            Motion::SetAcceleration(cmd.data[0]);
             //preferences.putInt("Accel",cmd.data[0]);
-            println("Accel : %f", getAcceleration());
+            println("Accel : %f", Motion::GetAcceleration());
           }
-          println("Motor D accel: %f", motor_D.acceleration());
-          println("Motor G accel: %f", motor_G.acceleration());
-        }
-        if (cmd.cmdStartsWith("Pulse"))
-        {
-          // print("Pulse : ", cmd);
-          if (cmd.size > 0)
-          {
-            motor_D.setMinPulseWidth(cmd.data[0]);
-            motor_G.setMinPulseWidth(cmd.data[0]);
-          }
-          println("setMinPulseWidth: %i", cmd.data[0]);
+          println("Motor D accel: %f", Motion::motor_D.acceleration());
+          println("Motor G accel: %f", Motion::motor_G.acceleration());
         }
         if (cmd.cmdStartsWith("Go"))
         {
           // print("Go : ", cmd);
           if (cmd.size == 1)
-            go(cmd.data[0]);
+            Motion::Go(cmd.data[0]);
           if (cmd.size == 2)
-            goTo(cmd.data[0], cmd.data[1]);
+            Motion::GoTo(cmd.data[0], cmd.data[1]);
           if (cmd.size == 3)
-            goTo(cmd.data[0], cmd.data[1], cmd.data[2]);
+            Motion::GoTo(cmd.data[0], cmd.data[1], cmd.data[2]);
         }
         if (cmd.cmdStartsWith("Turn"))
         {
           // print("Turn : ", cmd);
           if (cmd.size > 0)
-            turn(cmd.data[0]);
+            Motion::Turn(cmd.data[0]);
         }
         if (cmd.cmdStartsWith("Motor"))
         {
           println("Motor D:");
-          println("speed: %f", motor_D.speed());
-          println("acceleration: %f", motor_D.acceleration());
-          println("distanceToGo: %i", (int)motor_D.distanceToGo());
-          println("targetPosition: %i", (int)motor_D.targetPosition());
-          println("currentPosition: %i", (int)motor_D.currentPosition());
-          // println("computeNewSpeed:",(long)motor_D.computeNewSpeed());
+          println("speed: %f", Motion::motor_D.speed());
+          println("acceleration: %f", Motion::motor_D.acceleration());
+          println("distanceToGo: %i", (int)Motion::motor_D.distanceToGo());
+          println("targetPosition: %i", (int)Motion::motor_D.targetPosition());
+          println("currentPosition: %i", (int)Motion::motor_D.currentPosition());
+          // println("computeNewSpeed:",(long)Motion::motor_D.computeNewSpeed());
           println("-----");
           println("Motor G:");
-          println("speed: %f", motor_G.speed());
-          println("acceleration: %f", motor_G.acceleration());
-          println("distanceToGo: %i", (int)motor_G.distanceToGo());
-          println("targetPosition: %i", (int)motor_G.targetPosition());
-          println("currentPosition: %i", (int)motor_G.currentPosition());
-          // println("computeNewSpeed:",(long)motor_G.computeNewSpeed());
+          println("speed: %f", Motion::motor_G.speed());
+          println("acceleration: %f", Motion::motor_G.acceleration());
+          println("distanceToGo: %i", (int)Motion::motor_G.distanceToGo());
+          println("targetPosition: %i", (int)Motion::motor_G.targetPosition());
+          println("currentPosition: %i", (int)Motion::motor_G.currentPosition());
+          // println("computeNewSpeed:",(long)Motion::motor_G.computeNewSpeed());
           println("-----");
         }
         if (cmd.cmdStartsWith("Blink"))

@@ -1,26 +1,24 @@
 #ifndef MOTION_H
 #define MOTION_H
 
-#include <AccelStepper.h>
+#include "MotorDriver.h"
 #include "pins.h"
 #include "sensors.h"
 #include "ESP32_Helper.h"
 
-#define STEPS_PER_REVOLUTION 200    // Nombre de pas par tour du moteur
-#define WHEEL_DIAMETER_MM 59.6f     // Diamètre de la roue en millimètres
-#define WHEEL_DISTANCE_MM 88.8f     // Distance entre les roues en millimètres
+namespace Motion {
 
-#define MAX_SPEED       4700.0
-#define MAX_ACCELERATION    5000.0
+constexpr int stepsPerRevolution = 200;       // Nombre de pas par tour du moteur
+constexpr float wheelDiameterMm = 59.6f;      // Diamètre de la roue en millimètres
+constexpr float wheelDistanceMm = 88.8f;      // Distance entre les roues en millimètres
 
-#define STOP_SPEED      48000.0
-#define STOP_ACCELERATION   30000.0
+constexpr float maxSpeed = 4700.0f;
+constexpr float maxAcceleration = 5000.0f;
 
-#define CENTER_POSITION_MM 53       // Valeur entre l'arrière du robot et le centre des roues en millimètres
+constexpr float stopSpeed = 48000.0f;
+constexpr float stopAcceleration = 30000.0f;
 
-#define MOTION_WAIT 0
-#define MOTION_RUN 1
-#define MOTION_STOP 2
+constexpr int centerPositionMm = 53;          // Valeur entre l'arrière du robot et le centre des roues en millimètres
 
 // Structure pour représenter un déplacement polaire relatif du robot
 struct PolarMove {
@@ -36,49 +34,49 @@ enum StepMode {
     SIXTEENTH_STEP    // MS1 = VIO, MS2 = VIO
 };
 
-// Déclaration des objets comme externes
-extern AccelStepper motor_D;
-extern AccelStepper motor_G;
-
 // Déclaration des fonctions
 
-void initMotion();
-void enableMotors();
-void disableMotors();
-void setMaxSpeed(float _maxSpeed = MAX_SPEED);
-float getMaxSpeed();
-void setAcceleration(float _acceleration = MAX_ACCELERATION);
-float getAcceleration();
-void updateMotors();
+void Initialisation();
+void EnableMotors();
+void DisableMotors();
+void SetMaxSpeed(float _maxSpeed = maxSpeed);
+float GetMaxSpeed();
+void SetAcceleration(float _acceleration = maxAcceleration);
+float GetAcceleration();
 
-PoseF getCurrentPose();
+PoseF GetCurrentPose();
 
-void setCurrentY(float _y);
-void setCurrentX(float _x);
-void setCurrentRot(float _rot);
+void SetCurrentY(float _y);
+void SetCurrentX(float _x);
+void SetCurrentRot(float _rot);
 
-void processMove();
-void setOpponentChecking(bool _opponentChecking);
-void setMotionState(int _motionState);
+void ProcessMove();
+void SetOpponentChecking(bool _opponentChecking);
 
-long convertDistToStep(float _dist);
-long convertAngleToStep(float angle);
+long ConvertDistToStep(float _dist);
+long ConvertAngleToStep(float angle);
 
 // Déplacements relatifs
-void go(float _dist);
-void turn(float _angle);
-void turnGo(float _angle, float _dist);
+void Go(float _dist);
+void Turn(float _angle);
+void TurnGo(float _angle, float _dist);
 
 // Déplacements absolus
-void goTo(PoseF _target);
-void goTo(float _x, float _y);
-void goTo(float _x, float _y, float _rot);
+void GoTo(PoseF _target);
+void GoTo(float _x, float _y);
+void GoTo(float _x, float _y, float _rot);
 
-void turnTo(float _x, float _y);
+void TurnTo(float _x, float _y);
 
 // Converti la position demandée vers le targetPolarMove
-void convertToPolar(PoseF _target);
-void convertToPolar(float _x, float _y);
-void convertToPolar(float _x, float _y, float _rot);
+void ConvertToPolar(PoseF _target);
+void ConvertToPolar(float _x, float _y);
+void ConvertToPolar(float _x, float _y, float _rot);
+
+// Déclaration des objets moteurs comme externes
+extern MotorDriver motor_D;
+extern MotorDriver motor_G;
+
+} // namespace Motion
 
 #endif
