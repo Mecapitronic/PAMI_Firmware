@@ -92,9 +92,14 @@ namespace Motion
     ProcessMove();
   }
 
-  PoseF GetCurrentPose()
+  PoseF GetCurrentPoseF()
   {
     return currentPose;
+  }
+
+  Pose GetCurrentPose()
+  {
+    return Pose((int16_t)currentPose.x, (int16_t)currentPose.y, (int16_t)currentPose.h);
   }
 
   void SetCurrentY(float _y)
@@ -122,11 +127,44 @@ namespace Motion
 
     long tempDistance_D = 0;
     long tempDistance_G = 0;
+    const float mmPerStep = circumferenceMM / (stepsPerRevolution * stepMultiplier);
+
+    long prevPosD = motor_D.currentPosition();
+    long prevPosG = motor_G.currentPosition();
+
+    auto updatePoseFromMotors = [&](long posD, long posG)
+    {
+      const long deltaStepD = posD - prevPosD;
+      const long deltaStepG = posG - prevPosG;
+      prevPosD = posD;
+      prevPosG = posG;
+
+      if (deltaStepD == 0 && deltaStepG == 0)
+      {
+        return;
+      }
+
+      // Mapping des sens pour obtenir une cinematique coherente en mm.
+      const float distGmm = deltaStepG * mmPerStep;
+      const float distDmm = -deltaStepD * mmPerStep;
+
+      const float dCenter = (distGmm + distDmm) * 0.5f;
+      const float dThetaRad = (distDmm - distGmm) / wheelDistanceMm;
+
+      const float headingRad = currentPose.h * (PI / 180.0f);
+      const float headingMid = headingRad + dThetaRad * 0.5f;
+
+      currentPose.x += dCenter * cosf(headingMid);
+      currentPose.y += dCenter * sinf(headingMid);
+      currentPose.h += dThetaRad * (180.0f / PI);
+      Screen::SetPose(GetCurrentPose());
+    };
 
     println("Processing Move...");
     while ((motor_D.isRunning() || motor_G.isRunning())) // && Match::matchState != Match::State::MATCH_END)
     {
       vTaskDelay(1);
+      updatePoseFromMotors(motor_D.currentPosition(), motor_G.currentPosition());
       // print(">Dspeed:");println(motor_D.speed());
       // print(">DdistanceToGo:");println( (int)motor_D.distanceToGo());
       // print(">Gspeed:");println( motor_G.speed());
@@ -167,6 +205,8 @@ namespace Motion
         }
       }
     }
+    // Derniere mise a jour pour capter les derniers pas eventuels en sortie de boucle.
+    updatePoseFromMotors(motor_D.currentPosition(), motor_G.currentPosition());
     println("Movement ok");
   }
 
@@ -252,9 +292,6 @@ namespace Motion
     ConvertToPolar(_x, _y);
     Turn(targetMove.rotation1);
     Go(targetMove.distance);
-    currentPose.x = (_x);
-    currentPose.y = (_y);
-    currentPose.h = (tempTargetRotation);
     newPolarTarget = false;
   }
 
@@ -263,10 +300,7 @@ namespace Motion
     ConvertToPolar(_x, _y, _rot);
     Turn(targetMove.rotation1);
     Go(targetMove.distance);
-    currentPose.x = (_x);
-    currentPose.y = (_y);
     Turn(targetMove.rotation2);
-    currentPose.h = (_rot);
     newPolarTarget = false;
   }
 
@@ -274,7 +308,6 @@ namespace Motion
   {
     ConvertToPolar(_x, _y);
     Turn(targetMove.rotation1);
-    currentPose.h = (tempTargetRotation);
     newPolarTarget = false;
   }
 

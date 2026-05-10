@@ -5,6 +5,7 @@
 #include "pins.h"
 #include "sensors.h"
 #include "ESP32_Helper.h"
+#include "ScreenSSD1306.h"
 
 namespace Motion {
 
@@ -42,7 +43,8 @@ float GetMaxSpeed();
 void SetAcceleration(float _acceleration = maxAcceleration);
 float GetAcceleration();
 
-PoseF GetCurrentPose();
+PoseF GetCurrentPoseF();
+Pose GetCurrentPose();
 
 void SetCurrentY(float _y);
 void SetCurrentX(float _x);

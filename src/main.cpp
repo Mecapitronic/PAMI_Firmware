@@ -309,14 +309,13 @@ void TaskTeleplot(void *pvParameters)
     {
       if (teleplotTO.IsTimeOut())
       {
-        const PoseF pose = Motion::GetCurrentPose();
-        Printer::teleplot("pos_x", pose.x);
-        Printer::teleplot("pos_y", pose.y);
+        const Pose pose = Motion::GetCurrentPose();
+        Printer::teleplot("pos", pose);
         Printer::teleplot("speed_D", Motion::motor_D.speed());
         Printer::teleplot("speed_G", Motion::motor_G.speed());
 
         // Countdown
-        if (lastMatchTime != (int)(Match::getMatchTimeSec()))
+        if (lastMatchTime != (int)(Match::getMatchTimeSec()) && Match::matchState != Match::State::MATCH_BOOT)
         {
           println("Match Time : %i", (int)(Match::getMatchTimeSec()));
           lastMatchTime = (int)(Match::getMatchTimeSec());
@@ -352,10 +351,7 @@ void TaskHandleCommand(void *pvParameters)
 
         if (cmd.cmdStartsWith("Pos"))
         {
-          print("Pos : x=%f", Motion::GetCurrentPose().x);
-          print("  y=%f", Motion::GetCurrentPose().y);
-          print("  h=%f", Motion::GetCurrentPose().h);
-          println();
+          println("Pos x=%d y=%d h=%d", (int)Motion::GetCurrentPose().x, (int)Motion::GetCurrentPose().y, (int)Motion::GetCurrentPose().h);
         }
         if (cmd.cmdStartsWith("Speed"))
         {
