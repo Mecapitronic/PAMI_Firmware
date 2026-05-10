@@ -28,24 +28,6 @@ void MotorDriver::begin(uint8_t cpu_core)
     stepper->setAutoEnable(false);
 }
 
-void MotorDriver::disable()
-{
-    if (!stepper)
-    {
-        return;
-    }
-    stepper->disableOutputs();
-}
-
-void MotorDriver::enable()
-{
-    if (!stepper)
-    {
-        return;
-    }
-    stepper->enableOutputs();
-}
-
 void MotorDriver::setMaxSpeed(float speed)
 {
     maxSpeedCache = speed;
@@ -71,7 +53,7 @@ void MotorDriver::setAcceleration(float acceleration)
     }
 }
 
-float MotorDriver::acceleration() const
+float MotorDriver::getAcceleration() const
 {
     return accelerationCache;
 }

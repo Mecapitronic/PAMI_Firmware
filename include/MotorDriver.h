@@ -12,14 +12,11 @@ public:
 
     void begin(uint8_t cpu_core = 1);
 
-    void enable();
-    void disable();
-
     void setMaxSpeed(float speed);
     float maxSpeed() const;
 
     void setAcceleration(float acceleration);
-    float acceleration() const;
+    float getAcceleration() const;
 
     void move(long relative);
     bool isRunning() const;

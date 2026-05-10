@@ -14,10 +14,6 @@ void setup()
 
   Hardware::Initialisation();
   
-  //  We need it to init the servos  
-  Power::UpdateMeasurements();
-  Power::EnablePower();
-
   initSensor();
   Motion::Initialisation();
 
@@ -26,9 +22,6 @@ void setup()
   ServoAX12::AddServo(ServoID::Bras, "Bras", ServoPosition::BrasMin, ServoPosition::BrasMax);
   ServoAX12::SetServoPosition(ServoID::Bras, ServoPosition::BrasPos);
   ESP32_Helper::RegisterCommandHandler("AX12", ServoAX12::HandleCommand, ServoAX12::PrintCommandHelp);
-
-
-
 
   TaskThread(TaskMatch, "TaskMatch", 20000, 15, 0);
   TaskThread(TaskTeleplot, "TaskTeleplot", 5000, 1, 0);
@@ -385,8 +378,8 @@ void TaskHandleCommand(void *pvParameters)
             //preferences.putInt("Accel",cmd.data[0]);
             println("Accel : %f", Motion::GetAcceleration());
           }
-          println("Motor D accel: %f", Motion::motor_D.acceleration());
-          println("Motor G accel: %f", Motion::motor_G.acceleration());
+          println("Motor D accel: %f", Motion::motor_D.getAcceleration());
+          println("Motor G accel: %f", Motion::motor_G.getAcceleration());
         }
         if (cmd.cmdStartsWith("Go"))
         {
@@ -408,7 +401,7 @@ void TaskHandleCommand(void *pvParameters)
         {
           println("Motor D:");
           println("speed: %f", Motion::motor_D.speed());
-          println("acceleration: %f", Motion::motor_D.acceleration());
+          println("acceleration: %f", Motion::motor_D.getAcceleration());
           println("distanceToGo: %i", (int)Motion::motor_D.distanceToGo());
           println("targetPosition: %i", (int)Motion::motor_D.targetPosition());
           println("currentPosition: %i", (int)Motion::motor_D.currentPosition());
@@ -416,7 +409,7 @@ void TaskHandleCommand(void *pvParameters)
           println("-----");
           println("Motor G:");
           println("speed: %f", Motion::motor_G.speed());
-          println("acceleration: %f", Motion::motor_G.acceleration());
+          println("acceleration: %f", Motion::motor_G.getAcceleration());
           println("distanceToGo: %i", (int)Motion::motor_G.distanceToGo());
           println("targetPosition: %i", (int)Motion::motor_G.targetPosition());
           println("currentPosition: %i", (int)Motion::motor_G.currentPosition());

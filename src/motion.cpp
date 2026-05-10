@@ -73,25 +73,12 @@ namespace Motion
 
   float GetAcceleration()
   {
-    return motor_D.acceleration();
-  }
-
-  void EnableMotors()
-  {
-    motor_D.enable();
-    motor_G.enable();
-  }
-
-  void DisableMotors()
-  {
-    motor_D.disable();
-    motor_G.disable();
+    return motor_D.getAcceleration();
   }
 
   void Go(float _dist)
   {
     long stepValue = ConvertDistToStep(_dist);
-    EnableMotors();
     motor_G.move(stepValue);
     motor_D.move(-stepValue);
     ProcessMove();
@@ -100,7 +87,6 @@ namespace Motion
   void Turn(float _angle)
   {
     long stepValue = ConvertAngleToStep(_angle);
-    EnableMotors();
     motor_G.move(-stepValue);
     motor_D.move(-stepValue);
     ProcessMove();
@@ -138,7 +124,6 @@ namespace Motion
     long tempDistance_G = 0;
 
     println("Processing Move...");
-    EnableMotors();
     while ((motor_D.isRunning() || motor_G.isRunning())) // && Match::matchState != Match::State::MATCH_END)
     {
       vTaskDelay(1);
@@ -182,7 +167,6 @@ namespace Motion
         }
       }
     }
-    DisableMotors();
     println("Movement ok");
   }
 

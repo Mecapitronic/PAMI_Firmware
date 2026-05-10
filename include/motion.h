@@ -37,8 +37,6 @@ enum StepMode {
 // Déclaration des fonctions
 
 void Initialisation();
-void EnableMotors();
-void DisableMotors();
 void SetMaxSpeed(float _maxSpeed = maxSpeed);
 float GetMaxSpeed();
 void SetAcceleration(float _acceleration = maxAcceleration);
