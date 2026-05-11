@@ -292,7 +292,9 @@ void TaskTeleplot(void *pvParameters)
       if (teleplotTO.IsTimeOut())
       {
         const Pose pose = Motion::GetCurrentPose();
-        Printer::teleplot("pos", pose);
+        Printer::teleplot("posX", pose.x);
+        Printer::teleplot("posY", pose.y);
+        Printer::teleplot("posH", pose.h);
         Printer::teleplot("speed_D", Motion::motor_D.speed());
         Printer::teleplot("speed_G", Motion::motor_G.speed());
 
@@ -312,7 +314,7 @@ void TaskTeleplot(void *pvParameters)
     {
       printChrono(chrono);
     }
-    vTaskDelay(50);
+    vTaskDelay(10);
   }
 }
 
