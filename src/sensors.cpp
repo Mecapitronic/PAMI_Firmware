@@ -1,9 +1,9 @@
 #include "sensors.h"
 
-int pamiNum1=0;
-int pamiNum2=0;
-int pamiNum=0;
-
+//int pamiNum1=0;
+//int pamiNum2=0;
+//int pamiNum=0;
+/*
 void initSensor()
 {
   //Selecteur de PAMI
@@ -22,4 +22,4 @@ int ReadNumPami()
 int GetNumPami()
 {
     return pamiNum;
-}
+}*/

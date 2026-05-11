@@ -14,14 +14,12 @@ void setup()
 
   Hardware::Initialisation();
   
-  initSensor();
   Motion::Initialisation();
 
   ServoAX12::AddServo(ServoID::VL53, "VL53", ServoPosition::VL53Min, ServoPosition::VL53Max);
   ServoAX12::SetServoPosition(ServoID::VL53, ServoPosition::VL53Pos);
   ServoAX12::AddServo(ServoID::Bras, "Bras", ServoPosition::BrasMin, ServoPosition::BrasMax);
   ServoAX12::SetServoPosition(ServoID::Bras, ServoPosition::BrasPos);
-  ESP32_Helper::RegisterCommandHandler("AX12", ServoAX12::HandleCommand, ServoAX12::PrintCommandHelp);
 
   TaskThread(TaskMatch, "TaskMatch", 20000, 15, 0);
   TaskThread(TaskTeleplot, "TaskTeleplot", 5000, 1, 0);
@@ -46,28 +44,12 @@ void TaskMatch(void *pvParameters)
     try
     {
       if(Match::matchState == Match::State::MATCH_BOOT)
-      {        
-        // Lecture do codage du numéro de PAMI
-        int numPamiTmp = ReadNumPami();
-        if (numPamiTmp != numPami)
-        {
-          numPami = numPamiTmp;
-          println("N° PAMI : %i", numPami);
-          Wifi_Helper::SetLocalIP("192.168.137." + String(100 + numPami + 1));
-        }
+      {
       }
 
       // En attente de retrait de la tirette pour démarrer le match
       if (Match::matchState == Match::State::MATCH_WAIT)
       {
-        // Lecture do codage du numéro de PAMI
-        int numPamiTmp = ReadNumPami();
-        if (numPamiTmp != numPami)
-        {
-          numPami = numPamiTmp;
-          println("N° PAMI : %i", numPami);
-          Wifi_Helper::SetLocalIP("192.168.137." + String(100 + numPami + 1));
-        }
 
         // Start Position
         // Save Y position and orientation

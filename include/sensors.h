@@ -5,8 +5,8 @@
 #include "ESP32_Helper.h"
 
 // Déclaration des fonctions
-void initSensor();
-int ReadNumPami();
-int GetNumPami();
+//void initSensor();
+//int ReadNumPami();
+//int GetNumPami();
 
 #endif
