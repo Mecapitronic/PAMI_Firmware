@@ -16,18 +16,15 @@ namespace Hardware_Config
 {
     enum class ServoPosition
     {
-        VL53Min = 0,
-        VL53Pos = 145,
-        VL53Max = 290,
-
-        BrasMin = 0,
-        BrasPos = 145,
-        BrasMax = 290,
-
         Min = 0,
-        Max = 290
+        Pos1,
+        Pos2,
+        Pos3,
+        Max,
+        Count
     };
-    
+    constexpr size_t ServoPositionCount = static_cast<size_t>(ServoPosition::Count);
+
     enum class ServoID
     {
         VL53 = 1,           // Servo pour bouger le VL53
@@ -40,7 +37,7 @@ namespace Hardware_Config
     constexpr size_t RX_SERVO = 18;
     constexpr size_t TX_SERVO = 17;
     constexpr size_t PIN_SERVO_DIR = 10;
-    
+
     //******************** Pins IHM
     constexpr size_t PIN_SWITCH = 14;
     constexpr size_t PIN_TEAM = 13;
@@ -53,10 +50,9 @@ namespace Hardware_Config
 
     //******************** Pins Enable Power
     constexpr size_t PIN_EN_MCU = 3;
-    
+
     //******************** Pins TwoWire I²C
     constexpr size_t PIN_SDA = SDA;
     constexpr size_t PIN_SCL = SCL;
-    
 }
 #endif

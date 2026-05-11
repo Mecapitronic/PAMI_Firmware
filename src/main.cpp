@@ -4,6 +4,7 @@
 using namespace std;
 using namespace Printer;
 using namespace Hardware_Config;
+using namespace ServoAX12;
 
 Adafruit_INA219 ina219;
 
@@ -13,13 +14,20 @@ void setup()
   println("PAMI Firmware");
 
   Hardware::Initialisation();
+  Power::EnablePower();
   
   Motion::Initialisation();
 
-  ServoAX12::AddServo(ServoID::VL53, "VL53", ServoPosition::VL53Min, ServoPosition::VL53Max);
-  ServoAX12::SetServoPosition(ServoID::VL53, ServoPosition::VL53Pos);
-  ServoAX12::AddServo(ServoID::Bras, "Bras", ServoPosition::BrasMin, ServoPosition::BrasMax);
-  ServoAX12::SetServoPosition(ServoID::Bras, ServoPosition::BrasPos);
+  // Valeurs par défaut : { ax12Id, {positions[0]=min ... positions[n-1]=max}, count }
+  // Modifiables via commande : AX12Config:<nom>:<field>:<valeur>  (field: id|cnt|p0..p9)
+  // Stockées en NVS, persistantes au redémarrage
+  AddServo(ServoID::VL53, "VL53", ServoConfig(1, std::array<int32_t, MAX_SERVO_POSITIONS>{0, 100, 200, 290}, 4));
+  ServoConfig servoConfig;
+  servoConfig.ax12Id = 2;
+  servoConfig.AddPosition(0, ServoPosition::Min);   // min
+  servoConfig.AddPosition(90, ServoPosition::Pos1);  // pos1
+  // We do not have to set all positions, only the ones we want to use. The count will be automatically updated to reflect the number of valid positions.
+  AddServo(ServoID::Bras, "Bras", servoConfig);
 
   TaskThread(TaskMatch, "TaskMatch", 20000, 15, 0);
   TaskThread(TaskTeleplot, "TaskTeleplot", 5000, 1, 0);
