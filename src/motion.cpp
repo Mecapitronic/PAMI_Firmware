@@ -6,16 +6,22 @@ namespace Motion
 {
   namespace
   {
+    float NormalizeAngleDeg(float angleDeg)
+    {
+      float normalized = fmodf(angleDeg + 180.0f, 360.0f);
+      if (normalized < 0.0f)
+      {
+        normalized += 360.0f;
+      }
+      return normalized - 180.0f;
+    }
+
     // Position absolue du robot
-    PoseF currentPose = {0.0f, 0.0f, 0.0f};
-    PoseF targetPose = {0.0f, 0.0f, 0.0f};
+    PoseF currentPose = {100.0f, 100.0f, 0.0f};
     // Déplacement cible polaire
     PolarMove targetMove = {0.0f, 0.0f, 0.0f};
-    float tempTargetRotation = 0.0f;
-    bool newPolarTarget = false;
 
-    StepMode currentStepMode = EIGHTH_STEP;
-    int stepMultiplier = 8;
+    constexpr int stepMultiplier = StepMode::EIGHTH_STEP;
     constexpr float circumferenceMM = wheelDiameterMm * PI; // 2 PI r
 
     // Variable Opponent
@@ -79,8 +85,8 @@ namespace Motion
   void Go(float _dist)
   {
     long stepValue = ConvertDistToStep(_dist);
-    motor_G.move(stepValue);
-    motor_D.move(-stepValue);
+    motor_G.move(-stepValue);
+    motor_D.move(stepValue);
     ProcessMove();
   }
 
@@ -114,7 +120,7 @@ namespace Motion
 
   void SetCurrentRot(float _rot)
   {
-    currentPose.h = _rot;
+    currentPose.h = NormalizeAngleDeg(_rot);
   }
 
   void SetOpponentChecking(bool _opponentChecking)
@@ -154,9 +160,9 @@ namespace Motion
       const float headingRad = currentPose.h * (PI / 180.0f);
       const float headingMid = headingRad + dThetaRad * 0.5f;
 
-      currentPose.x += dCenter * cosf(headingMid);
-      currentPose.y += dCenter * sinf(headingMid);
-      currentPose.h += dThetaRad * (180.0f / PI);
+      currentPose.x -= dCenter * cosf(headingMid);
+      currentPose.y -= dCenter * sinf(headingMid);
+      currentPose.h = NormalizeAngleDeg(currentPose.h + dThetaRad * (180.0f / PI));
       Screen::SetPose(GetCurrentPose());
     };
 
@@ -241,23 +247,15 @@ namespace Motion
     targetMove.distance = sqrt(dx * dx + dy * dy);
 
     // Calculer la rotation la plus courte pour rotation1
-    targetMove.rotation1 = (targetAngleRadians - currentRotRadians) * (180.0f / M_PI);
-    if (targetMove.rotation1 > 180.0f)
-      targetMove.rotation1 -= 360.0f;
-    if (targetMove.rotation1 < -180.0f)
-      targetMove.rotation1 += 360.0f;
-
-    tempTargetRotation = targetAngleRadians * (180.0f / M_PI);
+    targetMove.rotation1 = NormalizeAngleDeg((targetAngleRadians - currentRotRadians) * (180.0f / M_PI));
 
     targetMove.rotation2 = 0; // Pas de rotation finale
-
-    newPolarTarget = true;
   }
 
   void ConvertToPolar(float _x, float _y, float _rot)
   {
     float dx = _x - currentPose.x;
-    float dy = -(_y - currentPose.y);
+    float dy = _y - currentPose.y;
 
     float targetAngleRadians = atan2(dy, dx);
     float currentRotRadians = currentPose.h * (M_PI / 180.0f);
@@ -266,20 +264,10 @@ namespace Motion
     targetMove.distance = sqrt(dx * dx + dy * dy);
 
     // Calculer la rotation la plus courte pour rotation1
-    targetMove.rotation1 = (targetAngleRadians - currentRotRadians) * (180.0f / M_PI);
-    if (targetMove.rotation1 > 180.0f)
-      targetMove.rotation1 -= 360.0f;
-    if (targetMove.rotation1 < -180.0f)
-      targetMove.rotation1 += 360.0f;
+    targetMove.rotation1 = NormalizeAngleDeg((targetAngleRadians - currentRotRadians) * (180.0f / M_PI));
 
     // Calculer la rotation la plus courte pour rotation2
-    targetMove.rotation2 = (targetRotRadians - targetAngleRadians) * (180.0f / M_PI);
-    if (targetMove.rotation2 > 180.0f)
-      targetMove.rotation2 -= 360.0f;
-    if (targetMove.rotation2 < -180.0f)
-      targetMove.rotation2 += 360.0f;
-
-    newPolarTarget = true;
+    targetMove.rotation2 = NormalizeAngleDeg((targetRotRadians - targetAngleRadians) * (180.0f / M_PI));
   }
 
   void GoTo(PoseF _target)
@@ -292,7 +280,6 @@ namespace Motion
     ConvertToPolar(_x, _y);
     Turn(targetMove.rotation1);
     Go(targetMove.distance);
-    newPolarTarget = false;
   }
 
   void GoTo(float _x, float _y, float _rot)
@@ -301,14 +288,12 @@ namespace Motion
     Turn(targetMove.rotation1);
     Go(targetMove.distance);
     Turn(targetMove.rotation2);
-    newPolarTarget = false;
   }
 
   void TurnTo(float _x, float _y)
   {
     ConvertToPolar(_x, _y);
     Turn(targetMove.rotation1);
-    newPolarTarget = false;
   }
 
 } // namespace Motion

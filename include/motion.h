@@ -29,10 +29,10 @@ struct PolarMove {
 };
 
 enum StepMode {
-    EIGHTH_STEP,      // MS1 = GND, MS2 = GND -> Current configuration
-    HALF_STEP,        // MS1 = GND, MS2 = VIO
-    QUARTER_STEP,     // MS1 = VIO, MS2 = GND
-    SIXTEENTH_STEP    // MS1 = VIO, MS2 = VIO
+    EIGHTH_STEP = 8,      // MS1 = GND, MS2 = GND -> Current configuration
+    HALF_STEP = 2,        // MS1 = GND, MS2 = VIO
+    QUARTER_STEP = 4,     // MS1 = VIO, MS2 = GND
+    SIXTEENTH_STEP = 16   // MS1 = VIO, MS2 = VIO
 };
 
 // Déclaration des fonctions

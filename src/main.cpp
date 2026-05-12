@@ -289,7 +289,7 @@ void TaskTeleplot(void *pvParameters)
   int lastMatchTime = 0;
   println("Start TaskTeleplot");
   Timeout teleplotTO;
-  teleplotTO.Start(50);
+  teleplotTO.Start(100);
   Chrono chrono("Teleplot", 1000);
 
   while (true)
@@ -300,11 +300,10 @@ void TaskTeleplot(void *pvParameters)
       if (teleplotTO.IsTimeOut())
       {
         const Pose pose = Motion::GetCurrentPose();
-        Printer::teleplot("posX", pose.x);
-        Printer::teleplot("posY", pose.y);
-        Printer::teleplot("posH", pose.h);
-        Printer::teleplot("speed_D", Motion::motor_D.speed());
-        Printer::teleplot("speed_G", Motion::motor_G.speed());
+        Printer::teleplot("pos", pose);
+        Printer::teleplot("ang", pose.h);
+        //Printer::teleplot("speed_D", Motion::motor_D.speed());
+        //Printer::teleplot("speed_G", Motion::motor_G.speed());
 
         // Countdown
         if (lastMatchTime != (int)(Match::getMatchTimeSec()) && Match::matchState != Match::State::MATCH_BOOT)
