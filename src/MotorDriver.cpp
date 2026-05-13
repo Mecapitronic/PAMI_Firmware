@@ -95,3 +95,11 @@ float MotorDriver::speed() const
 {
     return stepper ? (float)stepper->getCurrentSpeedInMilliHz() / 1000.0f : 0.0f;
 }
+
+void MotorDriver::stopMove()
+{
+    if (stepper)
+    {
+        stepper->forceStop();
+    }
+}

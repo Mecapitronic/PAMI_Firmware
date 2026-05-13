@@ -21,13 +21,8 @@ void setup()
   // Valeurs par défaut : { ax12Id, {positions[0]=min ... positions[n-1]=max}, count }
   // Modifiables via commande : AX12Config:<nom>:<field>:<valeur>  (field: id|cnt|p0..p9)
   // Stockées en NVS, persistantes au redémarrage
-  AddServo(ServoID::VL53, "VL53", ServoConfig(1, std::array<int32_t, MAX_SERVO_POSITIONS>{0, 100, 200, 290}, 4));
-  ServoConfig servoConfig;
-  servoConfig.ax12Id = 2;
-  servoConfig.AddPosition(0, ServoPosition::Min);   // min
-  servoConfig.AddPosition(90, ServoPosition::Pos1);  // pos1
-  // We do not have to set all positions, only the ones we want to use. The count will be automatically updated to reflect the number of valid positions.
-  AddServo(ServoID::Bras, "Bras", servoConfig);
+  AddServo(ServoID::VL53, "VL53", ServoConfig(1, std::array<int32_t, MAX_SERVO_POSITIONS>{150, 150, 180, 150, 200}, 5));
+  AddServo(ServoID::Bras, "Bras", ServoConfig(2, std::array<int32_t, MAX_SERVO_POSITIONS>{160, 160, 210, 160, 220}, 5));
 
   TaskThread(TaskMatch, "TaskMatch", 20000, 15, 0);
   TaskThread(TaskTeleplot, "TaskTeleplot", 5000, 1, 0);
@@ -92,7 +87,13 @@ void TaskMatch(void *pvParameters)
       // Match en cours
       if (Match::matchState == Match::State::MATCH_RUN)
       {
-        /*
+        println("-------");
+        println("Wait For 85 Sec !");
+        
+        Motion::SetOpponentChecking(false);
+        ServoAX12::SetServoPosition(ServoID::VL53,ServoPosition::Pos2);
+        ServoAX12::SetServoPosition(ServoID::Bras,ServoPosition::Pos1);
+        
         int lastMatchTime = 0;
         while(Match::getMatchTimeMs() < Match::time_start_match && IHM::switchMode == 1)
         {
@@ -102,8 +103,8 @@ void TaskMatch(void *pvParameters)
               println("Match Time : %i", (int)(Match::getMatchTimeSec()));
               lastMatchTime = (int)(Match::getMatchTimeSec());
           }
-          vTaskDelay(1);
-        }*/
+          vTaskDelay(100);
+        }
 
         println("-------");
         println("Start !");
@@ -111,36 +112,19 @@ void TaskMatch(void *pvParameters)
         if (IHM::switchMode == 1)
         {
           println("Mode Match !");
+
           long speed = 0;
           long accel = 0;
-          // Motion::setOpponentChecking(true);
+          speed = Motion::maxSpeed;
+          accel = Motion::maxAcceleration;
 
-          speed = micros() % (int)(Motion::maxSpeed * 3 / 4) + (int)(Motion::maxSpeed * 1 / 4);
-          accel = micros() % (int)(Motion::maxAcceleration * 3 / 4) + (int)(Motion::maxAcceleration * 1 / 4);
-          println("speed : %i", speed);
-          println("accel : %i", accel);
+          // Motion::Turn(180);
           Motion::SetMaxSpeed(speed);
           Motion::SetAcceleration(accel);
 
-          Motion::Go(800);
-
-          speed = micros() % (int)(Motion::maxSpeed * 3 / 4) + (int)(Motion::maxSpeed * 1 / 4);
-          accel = micros() % (int)(Motion::maxAcceleration * 3 / 4) + (int)(Motion::maxAcceleration * 1 / 4);
-          println("speed : %i", speed);
-          println("accel : %i", accel);
-          Motion::SetMaxSpeed(speed);
-          Motion::SetAcceleration(accel);
-
-          Motion::Turn(180);
-
-          speed = micros() % (int)(Motion::maxSpeed * 3 / 4) + (int)(Motion::maxSpeed * 1 / 4);
-          accel = micros() % (int)(Motion::maxAcceleration * 3 / 4) + (int)(Motion::maxAcceleration * 1 / 4);
-          println("speed : %i", speed);
-          println("accel : %i", accel);
-          Motion::SetMaxSpeed(speed);
-          Motion::SetAcceleration(accel);
-
-          Motion::Go(1000);
+          Motion::SetOpponentChecking(true);
+          Motion::Go(1500);
+          ServoAX12::SetServoPosition(ServoID::Bras,ServoPosition::Pos2);
         }
         else
         {
@@ -265,6 +249,26 @@ void TaskMatch(void *pvParameters)
       // Fin du match
       if (Match::matchState == Match::State::MATCH_END)
       {
+        static bool pos = false;
+        if (!pos)
+        {
+          ServoAX12::SetServoPosition(ServoID::VL53,ServoPosition::Pos2, 5000);
+          while(ServoAX12::IsServoMoving(ServoID::VL53))
+          {
+            vTaskDelay(100);
+          }
+          pos = true;
+        }
+        else
+        {
+          ServoAX12::SetServoPosition(ServoID::VL53,ServoPosition::Pos1, 5000);
+          while(ServoAX12::IsServoMoving(ServoID::VL53))
+          {
+            vTaskDelay(100);
+          }
+          pos = false;
+        }
+
         // Wait for reset
         if (IHM::switchMode == 0 && IHM::tirettePresent == 0)
           Match::matchState = Match::State::MATCH_BOOT;

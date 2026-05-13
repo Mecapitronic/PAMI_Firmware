@@ -26,6 +26,7 @@ public:
     long currentPosition() const;
 
     float speed() const;
+    void stopMove();
 
 private:
     uint8_t stepPin = 0;

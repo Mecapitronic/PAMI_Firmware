@@ -189,22 +189,26 @@ namespace Motion
           SetAcceleration(stopAcceleration);
           SetMaxSpeed(stopSpeed);
 
-          motor_D.move(0);
-          motor_G.move(0);
+          //motor_D.move(0);
+          //motor_G.move(0);
+          motor_D.stopMove();
+          motor_G.stopMove();
 
           tempDistance_D = tempDistance_D + motor_D.distanceToGo();
           tempDistance_G = tempDistance_G + motor_G.distanceToGo();
 
           println("Opponent detected");
+          break;
           // While we need to stop
           while (ToF_VL53L8CX::IsTargetPresent())
           {
-            vTaskDelay(1000 / portTICK_PERIOD_MS);
+            vTaskDelay(500);
             println("Opponent still here");
+            updatePoseFromMotors(motor_D.currentPosition(), motor_G.currentPosition());
           }
 
-          SetAcceleration(accelTmp/4);
-          SetMaxSpeed(speedTmp/4);
+          SetAcceleration(accelTmp);
+          SetMaxSpeed(speedTmp);
 
           motor_D.move(tempDistance_D);
           motor_G.move(tempDistance_G);

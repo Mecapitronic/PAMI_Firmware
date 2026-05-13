@@ -19,7 +19,7 @@ constexpr float maxAcceleration = 5000.0f;
 constexpr float stopSpeed = 48000.0f;
 constexpr float stopAcceleration = 30000.0f;
 
-constexpr int centerPositionMm = 53;          // Valeur entre l'arrière du robot et le centre des roues en millimètres
+constexpr int centerPositionMm = 86;          // Valeur entre l'arrière du robot et le centre des roues en millimètres
 
 // Structure pour représenter un déplacement polaire relatif du robot
 struct PolarMove {
