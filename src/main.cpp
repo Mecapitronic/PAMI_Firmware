@@ -13,9 +13,9 @@ void setup()
   ESP32_Helper::Initialisation();
   println("PAMI Firmware");
 
-  Hardware::Initialisation();
+  Hardware::Initialisation(true);
   Power::EnablePower();
-  
+
   Motion::Initialisation();
 
   // Valeurs par défaut : { ax12Id, {positions[0]=min ... positions[n-1]=max}, count }

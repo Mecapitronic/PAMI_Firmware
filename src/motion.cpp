@@ -178,7 +178,7 @@ namespace Motion
       if (opponentChecking)
       {
         // if we need to stop
-        if (false)
+        if (ToF_VL53L8CX::IsTargetPresent())
         {
           tempDistance_D = motor_D.distanceToGo();
           tempDistance_G = motor_G.distanceToGo();
@@ -197,7 +197,7 @@ namespace Motion
 
           println("Opponent detected");
           // While we need to stop
-          while (false)
+          while (ToF_VL53L8CX::IsTargetPresent())
           {
             vTaskDelay(1000 / portTICK_PERIOD_MS);
             println("Opponent still here");
