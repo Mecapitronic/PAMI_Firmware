@@ -37,6 +37,7 @@ void loop()
   vTaskDelete(NULL); // Supprime immédiatement le task Arduino "loop"
 }
 
+int numPami = -1;
 void TaskMatch(void *pvParameters)
 {
   println("Start TaskMatch");
@@ -46,62 +47,109 @@ void TaskMatch(void *pvParameters)
     chrono.Start();
     try
     {
-      if(Match::matchState == Match::State::MATCH_BOOT)
+      if (Match::matchState == Match::State::MATCH_BOOT)
       {
+        numPami = Match::GetNumPami();
+        Motion::SetOpponentChecking(false);
       }
 
       // En attente de retrait de la tirette pour démarrer le match
       if (Match::matchState == Match::State::MATCH_WAIT)
       {
-
+        Motion::SetOpponentChecking(false);
+        Screen::SetPose(Motion::GetCurrentPose());
         // Start Position
         // Save Y position and orientation
 
-        Motion::SetCurrentY(0);
-        Motion::SetCurrentX(Motion::centerPositionMm);
-        Motion::SetCurrentRot(0);
+        // Motion::SetCurrentY(0);
+        // Motion::SetCurrentX(Motion::centerPositionMm);
+        Motion::SetCurrentRot(-90);
 
-        //   if (numPami == 0)
-        //     setCurrentY(1924);
-        //   else if (numPami == 1)
-        //     setCurrentY(1817);
+        if (IHM::team == IHM::Team::Jaune)
+        {
+          if (numPami == 1)
+          {
+            Motion::SetCurrentX(60);
+            Motion::SetCurrentY(1890);
+          }
+          else if (numPami == 2)
+          {
+            Motion::SetCurrentX(180);
+            Motion::SetCurrentY(1890);
+          }
+        }
+        else
+        {
+          if (numPami == 1)
+          {
+            Motion::SetCurrentX(3000 - 60);
+            Motion::SetCurrentY(1890);
+          }
+          else if (numPami == 2)
+          {
+            Motion::SetCurrentX(3000 - 180);
+            Motion::SetCurrentY(1890);
+          }
+        }
         //   else if (numPami == 2)
         //     setCurrentY(1710);
         //   else if (numPami == 3)
         //     setCurrentY(1603);
         //   else
         //     println("ERROR robot number");
-
-        // if (team == Team::TEAM_YELLOW)
-        // {
-        //   setCurrentX(Motion::centerPositionMm);
-        //   setCurrentRot(0);
-        // }
-        // else
-        // {
-        //   setCurrentX(3000-Motion::centerPositionMm);
-        //   setCurrentRot(180);
-        // }
       }
 
       // Match en cours
       if (Match::matchState == Match::State::MATCH_RUN)
       {
         println("-------");
+        println("Start init position after 10 Sec !");
+
+        ServoAX12::SetServoPosition(ServoID::VL53, ServoPosition::Pos2);
+        ServoAX12::SetServoPosition(ServoID::Bras, ServoPosition::Pos1);
+
+        if(IHM::switchMode == 1)
+        {
+          delay(10000);
+        }
+        else
+        {
+          delay(3000);
+        }
+
+        if (IHM::team == IHM::Team::Jaune)
+        {
+          if (numPami == 1)
+          {
+            Motion::GoTo(60, 1650);
+          }
+          else if (numPami == 2)
+          {
+            Motion::GoTo(180, 1650);
+          }
+        }
+        else
+        {
+          if (numPami == 1)
+          {
+            Motion::GoTo(3000 - 60, 1650);
+          }
+          else if (numPami == 2)
+          {
+            Motion::GoTo(3000 - 180, 1650);
+          }
+        }
+
+        println("-------");
         println("Wait For 85 Sec !");
-        
-        Motion::SetOpponentChecking(false);
-        ServoAX12::SetServoPosition(ServoID::VL53,ServoPosition::Pos2);
-        ServoAX12::SetServoPosition(ServoID::Bras,ServoPosition::Pos1);
-        
         int lastMatchTime = 0;
-        while(Match::getMatchTimeMs() < Match::time_start_match && IHM::switchMode == 1)
+        while (Match::getMatchTimeMs() < Match::time_start_match && IHM::switchMode == 1)
         {
           // Countdown to start
           if (lastMatchTime != (int)(Match::getMatchTimeSec()))
           {
-              println("Match Time : %i", (int)(Match::getMatchTimeSec()));
-              lastMatchTime = (int)(Match::getMatchTimeSec());
+            println("Match Time : %i", (int)(Match::getMatchTimeSec()));
+            lastMatchTime = (int)(Match::getMatchTimeSec());
           }
           vTaskDelay(100);
         }
@@ -109,43 +157,55 @@ void TaskMatch(void *pvParameters)
         println("-------");
         println("Start !");
 
-        if (IHM::switchMode == 1)
+        // if (IHM::switchMode == 1)
+        //{
+        println("Mode Match !");
+
+        long speed = 0;
+        long accel = 0;
+        speed = Motion::maxSpeed;
+        accel = Motion::maxAcceleration;
+
+        // Motion::Turn(180);
+        Motion::SetMaxSpeed(speed);
+        Motion::SetAcceleration(accel);
+
+        if(IHM::switchMode == 1)
         {
-          println("Mode Match !");
-
-          long speed = 0;
-          long accel = 0;
-          speed = Motion::maxSpeed;
-          accel = Motion::maxAcceleration;
-
-          // Motion::Turn(180);
-          Motion::SetMaxSpeed(speed);
-          Motion::SetAcceleration(accel);
-
-          Motion::SetOpponentChecking(true);
-          Motion::Go(1500);
-          ServoAX12::SetServoPosition(ServoID::Bras,ServoPosition::Pos2);
+          //Motion::SetOpponentChecking(true);
+          // !!! sinon enchaine tous les mouvements d'un coup en cas de detection !!!
+          Motion::SetOpponentChecking(false);
         }
         else
         {
-          println("Mode Test !");
-
-          long speed = 0;
-          long accel = 0;
-          // Motion::setOpponentChecking(true);
-
-          speed = Motion::maxSpeed;        // micros()%(int)(Motion::maxSpeed*3/4)+(int)(Motion::maxSpeed*1/4);
-          accel = Motion::maxAcceleration; // micros()%(int)(Motion::maxAcceleration*3/4)+(int)(Motion::maxAcceleration*1/4);
-          println("speed : %i", speed);
-          println("accel : %i", accel);
-          Motion::SetMaxSpeed(speed);
-          Motion::SetAcceleration(accel);
-
-          Motion::Turn(45);
-          Motion::Turn(-90);
-          Motion::Turn(45);
-          Motion::Turn(-360);
+          Motion::SetOpponentChecking(false);
         }
+
+        if (IHM::team == IHM::Team::Jaune)
+        {
+          if (numPami == 1)
+          {
+            Motion::GoTo(60, 950);
+          }
+          else if (numPami == 2)
+          {
+            Motion::GoTo(700, 950);
+          }
+        }
+        else
+        {
+          if (numPami == 1)
+          {
+            Motion::GoTo(3000 - 60, 950);
+          }
+          else if (numPami == 2)
+          {
+            Motion::GoTo(3000 - 700, 950);
+          }
+        }
+
+        ServoAX12::SetServoPosition(ServoID::Bras, ServoPosition::Pos2);
+        //}
 
         println("Stop !");
         println("------");

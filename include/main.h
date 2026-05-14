@@ -14,10 +14,6 @@
 using namespace std;
 using namespace Printer;
 
-int numPami = -1;
-
-extern int numPami;
-
 void TaskLoop(void *pvParameters);
 
 void TaskMatch(void *pvParameters);

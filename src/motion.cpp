@@ -163,7 +163,7 @@ namespace Motion
       currentPose.x -= dCenter * cosf(headingMid);
       currentPose.y -= dCenter * sinf(headingMid);
       currentPose.h = NormalizeAngleDeg(currentPose.h + dThetaRad * (180.0f / PI));
-      Screen::SetPose(GetCurrentPose());
+      Screen::SetPose(Motion::GetCurrentPose());
     };
 
     println("Processing Move...");
@@ -282,6 +282,7 @@ namespace Motion
   void GoTo(float _x, float _y)
   {
     ConvertToPolar(_x, _y);
+    println("GoTo Polar : rot1=%f dist=%f rot2=%f", targetMove.rotation1, targetMove.distance, targetMove.rotation2);
     Turn(targetMove.rotation1);
     Go(targetMove.distance);
   }
@@ -289,6 +290,7 @@ namespace Motion
   void GoTo(float _x, float _y, float _rot)
   {
     ConvertToPolar(_x, _y, _rot);
+    println("GoTo Polar : rot1=%f dist=%f rot2=%f", targetMove.rotation1, targetMove.distance, targetMove.rotation2);
     Turn(targetMove.rotation1);
     Go(targetMove.distance);
     Turn(targetMove.rotation2);
@@ -297,6 +299,7 @@ namespace Motion
   void TurnTo(float _x, float _y)
   {
     ConvertToPolar(_x, _y);
+    println("TurnTo Polar : rot1=%f dist=%f rot2=%f", targetMove.rotation1, targetMove.distance, targetMove.rotation2);
     Turn(targetMove.rotation1);
   }
 
