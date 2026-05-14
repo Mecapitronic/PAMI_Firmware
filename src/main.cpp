@@ -63,40 +63,9 @@ void TaskMatch(void *pvParameters)
 
         // Motion::SetCurrentY(0);
         // Motion::SetCurrentX(Motion::centerPositionMm);
-        Motion::SetCurrentRot(-90);
-
-        if (IHM::team == IHM::Team::Jaune)
-        {
-          if (numPami == 1)
-          {
-            Motion::SetCurrentX(60);
-            Motion::SetCurrentY(1890);
-          }
-          else if (numPami == 2)
-          {
-            Motion::SetCurrentX(180);
-            Motion::SetCurrentY(1890);
-          }
-        }
-        else
-        {
-          if (numPami == 1)
-          {
-            Motion::SetCurrentX(3000 - 60);
-            Motion::SetCurrentY(1890);
-          }
-          else if (numPami == 2)
-          {
-            Motion::SetCurrentX(3000 - 180);
-            Motion::SetCurrentY(1890);
-          }
-        }
-        //   else if (numPami == 2)
-        //     setCurrentY(1710);
-        //   else if (numPami == 3)
-        //     setCurrentY(1603);
-        //   else
-        //     println("ERROR robot number");
+        Motion::SetCurrentRot(90);
+        Motion::SetCurrentX(0);
+        Motion::SetCurrentY(0);
       }
 
       // Match en cours
@@ -108,37 +77,16 @@ void TaskMatch(void *pvParameters)
         ServoAX12::SetServoPosition(ServoID::VL53, ServoPosition::Pos2);
         ServoAX12::SetServoPosition(ServoID::Bras, ServoPosition::Pos1);
 
-        if(IHM::switchMode == 1)
+        Motion::SetMaxSpeed(2000);
+        for (size_t i = 0; i < 10; i++)
         {
+          
+          Motion::Turn(3620);
           delay(10000);
         }
-        else
-        {
-          delay(3000);
-        }
+        
 
-        if (IHM::team == IHM::Team::Jaune)
-        {
-          if (numPami == 1)
-          {
-            Motion::GoTo(60, 1650);
-          }
-          else if (numPami == 2)
-          {
-            Motion::GoTo(180, 1650);
-          }
-        }
-        else
-        {
-          if (numPami == 1)
-          {
-            Motion::GoTo(3000 - 60, 1650);
-          }
-          else if (numPami == 2)
-          {
-            Motion::GoTo(3000 - 180, 1650);
-          }
-        }
+            
 
         println("-------");
         println("Wait For 85 Sec !");
