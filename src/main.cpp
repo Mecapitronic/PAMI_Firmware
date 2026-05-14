@@ -8,6 +8,80 @@ using namespace ServoAX12;
 
 Adafruit_INA219 ina219;
 
+constexpr float fieldWidthMm = 3000.0f;
+
+inline float MirrorX(float x)
+{
+  return fieldWidthMm - x;
+}
+
+struct PamiMovement
+{
+  float x;
+  float y;
+  float heading;
+  int waitMs;
+};
+
+struct PamiConfig
+{
+  bool enabled;
+  float startX;
+  float startY;
+  float startHeading;
+  PamiMovement initialMove;
+  PamiMovement matchMove;
+};
+
+constexpr int pamiConfigCount = 7;
+static const PamiConfig pamiConfigs[pamiConfigCount] = {
+  { true,  60.0f, 1890.0f, -90.0f, { 60.0f, 1650.0f, -90.0f, 0 }, { 60.0f, 950.0f, -90.0f, 0 } },
+  { true, 180.0f, 1890.0f, -90.0f, {180.0f, 1650.0f, -90.0f, 0 }, {700.0f, 950.0f, -90.0f, 0 } },
+  { false,  0.0f,    0.0f, -90.0f, { 0.0f, 0.0f, -90.0f, 0 }, { 0.0f, 0.0f, -90.0f, 0 } },
+  { false,  0.0f,    0.0f, -90.0f, { 0.0f, 0.0f, -90.0f, 0 }, { 0.0f, 0.0f, -90.0f, 0 } },
+  { false,  0.0f,    0.0f, -90.0f, { 0.0f, 0.0f, -90.0f, 0 }, { 0.0f, 0.0f, -90.0f, 0 } },
+  { false,  0.0f,    0.0f, -90.0f, { 0.0f, 0.0f, -90.0f, 0 }, { 0.0f, 0.0f, -90.0f, 0 } },
+  { false,  0.0f,    0.0f, -90.0f, { 0.0f, 0.0f, -90.0f, 0 }, { 0.0f, 0.0f, -90.0f, 0 } }
+};
+
+const PamiConfig* GetPamiConfig(int numPami)
+{
+  if (numPami < 1 || numPami > pamiConfigCount)
+  {
+    return nullptr;
+  }
+  const PamiConfig& config = pamiConfigs[numPami - 1];
+  return config.enabled ? &config : nullptr;
+}
+
+float TeamAwareX(float x, IHM::Team team)
+{
+  return (team == IHM::Team::Bleu) ? MirrorX(x) : x;
+}
+
+void ApplyStartPose(const PamiConfig& config, IHM::Team team)
+{
+  Motion::SetCurrentRot(config.startHeading);
+  Motion::SetCurrentX(TeamAwareX(config.startX, team));
+  Motion::SetCurrentY(config.startY);
+}
+
+void ExecutePamiMovement(const PamiMovement& move, IHM::Team team)
+{
+  const float targetX = TeamAwareX(move.x, team);
+  Motion::GoTo(targetX, move.y, move.heading);
+  if (move.waitMs > 0)
+  {
+    delay(move.waitMs);
+  }
+}
+
+void ExecutePamiRun(const PamiConfig& config, IHM::Team team)
+{
+  ExecutePamiMovement(config.initialMove, team);
+  ExecutePamiMovement(config.matchMove, team);
+}
+
 void setup()
 {
   ESP32_Helper::Initialisation();
@@ -65,31 +139,14 @@ void TaskMatch(void *pvParameters)
         // Motion::SetCurrentX(Motion::centerPositionMm);
         Motion::SetCurrentRot(-90);
 
-        if (IHM::team == IHM::Team::Jaune)
+        const PamiConfig* config = GetPamiConfig(numPami);
+        if (config)
         {
-          if (numPami == 1)
-          {
-            Motion::SetCurrentX(60);
-            Motion::SetCurrentY(1890);
-          }
-          else if (numPami == 2)
-          {
-            Motion::SetCurrentX(180);
-            Motion::SetCurrentY(1890);
-          }
+          ApplyStartPose(*config, IHM::team);
         }
         else
         {
-          if (numPami == 1)
-          {
-            Motion::SetCurrentX(3000 - 60);
-            Motion::SetCurrentY(1890);
-          }
-          else if (numPami == 2)
-          {
-            Motion::SetCurrentX(3000 - 180);
-            Motion::SetCurrentY(1890);
-          }
+          println("Invalid PAMI number %d in MATCH_WAIT", numPami);
         }
         //   else if (numPami == 2)
         //     setCurrentY(1710);
@@ -117,27 +174,14 @@ void TaskMatch(void *pvParameters)
           delay(3000);
         }
 
-        if (IHM::team == IHM::Team::Jaune)
+        const PamiConfig* config = GetPamiConfig(numPami);
+        if (config)
         {
-          if (numPami == 1)
-          {
-            Motion::GoTo(60, 1650);
-          }
-          else if (numPami == 2)
-          {
-            Motion::GoTo(180, 1650);
-          }
+          ExecutePamiMovement(config->initialMove, IHM::team);
         }
         else
         {
-          if (numPami == 1)
-          {
-            Motion::GoTo(3000 - 60, 1650);
-          }
-          else if (numPami == 2)
-          {
-            Motion::GoTo(3000 - 180, 1650);
-          }
+          println("Invalid PAMI number %d in MATCH_RUN", numPami);
         }
 
         println("-------");
@@ -181,27 +225,14 @@ void TaskMatch(void *pvParameters)
           Motion::SetOpponentChecking(false);
         }
 
-        if (IHM::team == IHM::Team::Jaune)
+        const PamiConfig* config2 = GetPamiConfig(numPami);
+        if (config2)
         {
-          if (numPami == 1)
-          {
-            Motion::GoTo(60, 950);
-          }
-          else if (numPami == 2)
-          {
-            Motion::GoTo(700, 950);
-          }
+          ExecutePamiMovement(config2->matchMove, IHM::team);
         }
         else
         {
-          if (numPami == 1)
-          {
-            Motion::GoTo(3000 - 60, 950);
-          }
-          else if (numPami == 2)
-          {
-            Motion::GoTo(3000 - 700, 950);
-          }
+          println("Invalid PAMI number %d in MATCH_RUN second move", numPami);
         }
 
         ServoAX12::SetServoPosition(ServoID::Bras, ServoPosition::Pos2);
