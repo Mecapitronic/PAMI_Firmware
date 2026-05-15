@@ -37,11 +37,11 @@ struct PamiConfig
 
 constexpr int pamiConfigCount = 7;
 static const PamiConfig pamiConfigs[pamiConfigCount] = {
-    {true, false, 60, 1890, -90, {60, 1650, 0}, {60, 950, 0}, {0, 0, 0}},
-    {true, false, 180, 1890, -90, {180, 1650, 0}, {180, 1200, 0}, {700, 950, 0}},
-    {true, false, 420, 1890, -90, {420, 1650, 0}, {420, 1320, 0}, {1350, 930, 0}},
-    {true, false, 540, 1890, -90, {540, 1650, 0}, {540, 1450, 0}, {1100, 1450, 0}},
-    {true, true, 750, 1900, -90, {750, 1810, 0}, {1500, 1800, 0}, {0, 0, 0}},
+    {true, false, 81, 1912, -90, {81, 1650, 0}, {81, 950, 0}, {0, 0, 0}},
+    {true, false, 213, 1912, -90, {213, 1650, 0}, {213, 1200, 0}, {800, 950, 0}},
+    {true, false, 387, 1912, -90, {387, 1650, 0}, {387, 1320, 0}, {1400, 900, 0}},
+    {true, false, 519, 1912, -90, {519, 1650, 0}, {519, 1450, 0}, {1130, 1450, 0}},
+    {true, true, 750, 1900, -90, {750, 1810, 0}, {750, 1800, 0}, {0, 0, 0}},
     {false, false, 0, 0, -90, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}},
     {false, false, 0, 0, -90, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}}};
 
@@ -49,7 +49,7 @@ const PamiConfig *GetPamiConfig(int numPami)
 {
   if (numPami < 1 || numPami > pamiConfigCount)
   {
-    return nullptr;
+        return nullptr;
   }
   const PamiConfig &config = pamiConfigs[numPami - 1];
   return config.enabled ? &config : nullptr;
