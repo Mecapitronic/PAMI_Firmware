@@ -186,29 +186,34 @@ namespace Motion
           float speedTmp = GetMaxSpeed();
           float accelTmp = GetAcceleration();
 
-          SetAcceleration(stopAcceleration);
-          SetMaxSpeed(stopSpeed);
+          //SetAcceleration(stopAcceleration);
+          //SetMaxSpeed(stopSpeed);
 
           //motor_D.move(0);
           //motor_G.move(0);
           motor_D.stopMove();
           motor_G.stopMove();
 
-          tempDistance_D = tempDistance_D + motor_D.distanceToGo();
-          tempDistance_G = tempDistance_G + motor_G.distanceToGo();
+          //tempDistance_D = tempDistance_D + motor_D.distanceToGo();
+          //tempDistance_G = tempDistance_G + motor_G.distanceToGo();
 
           println("Opponent detected");
-          break;
+
+          Timeout opponentTimeout;
+          opponentTimeout.Start(2000);
+          // break;
           // While we need to stop
-          while (ToF_VL53L8CX::IsTargetPresent())
+          while (ToF_VL53L8CX::IsTargetPresent() && !opponentTimeout.IsTimeOut())
           {
             vTaskDelay(500);
             println("Opponent still here");
             updatePoseFromMotors(motor_D.currentPosition(), motor_G.currentPosition());
+            tempDistance_D = motor_D.distanceToGo();
+            tempDistance_G = motor_G.distanceToGo();
           }
 
-          SetAcceleration(accelTmp);
-          SetMaxSpeed(speedTmp);
+          //SetAcceleration(accelTmp);
+          //SetMaxSpeed(speedTmp);
 
           motor_D.move(tempDistance_D);
           motor_G.move(tempDistance_G);

@@ -15,33 +15,35 @@ inline float MirrorX(float x)
   return fieldWidthMm - x;
 }
 
+// x, y, waitMs
 struct PamiMovement
 {
-  float x;
-  float y;
-  float heading;
+  int x;
+  int y;
   int waitMs;
 };
 
 struct PamiConfig
 {
   bool enabled;
-  float startX;
-  float startY;
-  float startHeading;
+  bool isNinja;
+  int startX;
+  int startY;
+  int startHeading;
   PamiMovement initialMove;
-  PamiMovement matchMove;
+  PamiMovement matchMove1;
+  PamiMovement matchMove2;
 };
 
 constexpr int pamiConfigCount = 7;
 static const PamiConfig pamiConfigs[pamiConfigCount] = {
-  { true,  60.0f, 1890.0f, -90.0f, { 60.0f, 1650.0f, -90.0f, 0 }, { 60.0f, 950.0f, -90.0f, 0 } },
-  { true, 180.0f, 1890.0f, -90.0f, {180.0f, 1650.0f, -90.0f, 0 }, {700.0f, 950.0f, -90.0f, 0 } },
-  { false,  0.0f,    0.0f, -90.0f, { 0.0f, 0.0f, -90.0f, 0 }, { 0.0f, 0.0f, -90.0f, 0 } },
-  { false,  0.0f,    0.0f, -90.0f, { 0.0f, 0.0f, -90.0f, 0 }, { 0.0f, 0.0f, -90.0f, 0 } },
-  { false,  0.0f,    0.0f, -90.0f, { 0.0f, 0.0f, -90.0f, 0 }, { 0.0f, 0.0f, -90.0f, 0 } },
-  { false,  0.0f,    0.0f, -90.0f, { 0.0f, 0.0f, -90.0f, 0 }, { 0.0f, 0.0f, -90.0f, 0 } },
-  { false,  0.0f,    0.0f, -90.0f, { 0.0f, 0.0f, -90.0f, 0 }, { 0.0f, 0.0f, -90.0f, 0 } }
+  { true,  false, 60, 1890, -90, { 60, 1650, 0 }, { 60, 950, 0 }, { 0,0,0 } },
+  { true,  false, 180, 1890, -90, {180, 1650, 0 }, {700, 950, 0 }, { 0,0,0 } },
+  { true,  false, 420, 1890, -90, { 420, 1650, 0 }, { 420, 1320, 0 }, { 1350, 930, 0 } },
+  { true,  false, 540, 1890, -90, { 540, 1650, 0 }, { 540, 1450, 0 }, { 1100, 1450, 0 } },
+  { true,  true, 720, 1900,  -90, { 975, 1900, 0 }, { 1220, 1900, 0 }, { 0, 0, 0 } },
+  { false, false,  0,    0, -90, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } },
+  { false, false,  0,    0, -90, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }
 };
 
 const PamiConfig* GetPamiConfig(int numPami)
@@ -68,18 +70,17 @@ void ApplyStartPose(const PamiConfig& config, IHM::Team team)
 
 void ExecutePamiMovement(const PamiMovement& move, IHM::Team team)
 {
+  if(move.x == 0 || move.y == 0)
+  {
+    // No movement
+    return;
+  }
   const float targetX = TeamAwareX(move.x, team);
-  Motion::GoTo(targetX, move.y, move.heading);
+  Motion::GoTo(targetX, move.y);
   if (move.waitMs > 0)
   {
     delay(move.waitMs);
   }
-}
-
-void ExecutePamiRun(const PamiConfig& config, IHM::Team team)
-{
-  ExecutePamiMovement(config.initialMove, team);
-  ExecutePamiMovement(config.matchMove, team);
 }
 
 void setup()
@@ -196,39 +197,34 @@ void TaskMatch(void *pvParameters)
             lastMatchTime = (int)(Match::getMatchTimeSec());
           }
           vTaskDelay(100);
+          if (config)
+          {
+            if(config->isNinja)
+              break;
+          }
         }
 
         println("-------");
         println("Start !");
 
-        // if (IHM::switchMode == 1)
-        //{
-        println("Mode Match !");
-
-        long speed = 0;
-        long accel = 0;
-        speed = Motion::maxSpeed;
-        accel = Motion::maxAcceleration;
-
-        // Motion::Turn(180);
-        Motion::SetMaxSpeed(speed);
-        Motion::SetAcceleration(accel);
+        Motion::SetMaxSpeed(Motion::maxSpeed);
+        Motion::SetAcceleration(Motion::maxAcceleration);
 
         if(IHM::switchMode == 1)
         {
           //Motion::SetOpponentChecking(true);
-          // !!! sinon enchaine tous les mouvements d'un coup en cas de detection !!!
-          Motion::SetOpponentChecking(false);
+          // !!! Attention enchaine tous les mouvements d'un coup en cas de detection !!!
+          Motion::SetOpponentChecking(true);
         }
         else
         {
-          Motion::SetOpponentChecking(false);
+          Motion::SetOpponentChecking(true);
         }
 
-        const PamiConfig* config2 = GetPamiConfig(numPami);
-        if (config2)
+        if (config)
         {
-          ExecutePamiMovement(config2->matchMove, IHM::team);
+          ExecutePamiMovement(config->matchMove1, IHM::team);
+          ExecutePamiMovement(config->matchMove2, IHM::team);
         }
         else
         {
@@ -236,95 +232,9 @@ void TaskMatch(void *pvParameters)
         }
 
         ServoAX12::SetServoPosition(ServoID::Bras, ServoPosition::Pos2);
-        //}
 
         println("Stop !");
         println("------");
-
-        /*
-        if (numPami == 0)
-        {
-          Motion::SetOpponentChecking(true);
-          if (team == Team::TEAM_YELLOW)
-          {
-            Motion::GoTo(647, 1924);
-            Motion::SetMaxSpeed(Motion::maxSpeed/3);
-            Motion::SetAcceleration(Motion::maxAcceleration/3);
-            Motion::GoTo(1250, 1924);
-            Motion::SetMaxSpeed(Motion::maxSpeed/2);
-            Motion::SetAcceleration(Motion::maxAcceleration/2);
-            Motion::TurnTo(1250, 1580);
-            Motion::Go(-100);
-            Motion::SetCurrentY(2000-Motion::centerPositionMm);
-            Motion::SetMaxSpeed(Motion::maxSpeed);
-            Motion::SetAcceleration(Motion::maxAcceleration);
-            Motion::GoTo(1250, 1580);
-          }
-          else
-          {
-            Motion::GoTo(3000 - 647, 1924);
-            Motion::SetMaxSpeed(Motion::maxSpeed/3);
-            Motion::SetAcceleration(Motion::maxAcceleration/3);
-            Motion::GoTo(3000 - 1250, 1924);
-            Motion::SetMaxSpeed(Motion::maxSpeed/2);
-            Motion::SetAcceleration(Motion::maxAcceleration/2);
-            Motion::TurnTo(3000 - 1250, 1580);
-            Motion::Go(-100);
-            Motion::SetCurrentY(2000-Motion::centerPositionMm);
-            Motion::SetMaxSpeed(Motion::maxSpeed);
-            Motion::SetAcceleration(Motion::maxAcceleration);
-            Motion::GoTo(3000 - 1250, 1580);
-          }
-        }
-        else if (numPami == 1)
-        {
-          delay(3000);
-          if (team == Team::TEAM_YELLOW)
-          {
-            Motion::GoTo(350, 1817);
-            Motion::TurnTo(750, 1500);
-            Motion::GoTo(750, 1500);
-          }
-          else
-          {
-            Motion::GoTo(3000 - 350, 1817);
-            Motion::TurnTo(3000 - 750, 1500);
-            Motion::GoTo(3000 - 750, 1500);
-          }
-        }
-        else if (numPami == 2)
-        {
-          if (team == Team::TEAM_YELLOW)
-          {
-            Motion::GoTo(375, 1710);
-            Motion::TurnTo(1500, 1250);
-            Motion::SetMaxSpeed(Motion::maxSpeed/2);
-            Motion::SetAcceleration(Motion::maxAcceleration/2);
-            Motion::GoTo(1500, 1250);
-          }
-          else
-          {
-            Motion::GoTo(3000 - 375, 1710);
-            Motion::TurnTo(3000 - 1500, 1250);
-            Motion::SetMaxSpeed(Motion::maxSpeed/2);
-            Motion::SetAcceleration(Motion::maxAcceleration/2);
-            Motion::GoTo(3000 - 1500, 1250);
-          }
-        }
-        else if (numPami == 3)
-        {
-          if (team == Team::TEAM_YELLOW)
-          {
-            Motion::GoTo(550, 1603);
-            Motion::TurnTo(1500, 1250);
-          }
-          else
-          {
-            Motion::GoTo(3000 - 550, 1603);
-            Motion::TurnTo(3000 - 1500, 1250);
-          }
-        }
-        */
 
         // Fin des actions
         Match::matchState = Match::State::MATCH_STOP;
@@ -497,16 +407,6 @@ void TaskHandleCommand(void *pvParameters)
           println("currentPosition: %i", (int)Motion::motor_G.currentPosition());
           // println("computeNewSpeed:",(long)Motion::motor_G.computeNewSpeed());
           println("-----");
-        }
-        if (cmd.cmdStartsWith("Blink"))
-        {
-          //Blink:0
-          //Blink:1
-          if (cmd.size > 0)
-          {
-            IHM::useBlink = cmd.data[0];
-            println("Blink : %i", IHM::useBlink);
-          }
         }
         if (cmd.cmdStartsWith("RGB"))
         {

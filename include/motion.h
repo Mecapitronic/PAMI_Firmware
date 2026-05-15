@@ -13,11 +13,11 @@ constexpr int stepsPerRevolution = 200;       // Nombre de pas par tour du moteu
 constexpr float wheelDiameterMm = 59.6f;      // Diamètre de la roue en millimètres
 constexpr float wheelDistanceMm = 88.8f;      // Distance entre les roues en millimètres
 
-constexpr float maxSpeed = 4700.0f;
+constexpr float maxSpeed = 3500.0f; //;4700.0f;
 constexpr float maxAcceleration = 5000.0f;
 
-constexpr float stopSpeed = 48000.0f;
-constexpr float stopAcceleration = 30000.0f;
+//constexpr float stopSpeed = 48000.0f;
+//constexpr float stopAcceleration = 30000.0f;
 
 constexpr int centerPositionMm = 86;          // Valeur entre l'arrière du robot et le centre des roues en millimètres
 
