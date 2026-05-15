@@ -41,7 +41,7 @@ static const PamiConfig pamiConfigs[pamiConfigCount] = {
   { true,  false, 180, 1890, -90, {180, 1650, 0 }, {700, 950, 0 }, { 0,0,0 } },
   { true,  false, 420, 1890, -90, { 420, 1650, 0 }, { 420, 1320, 0 }, { 1350, 930, 0 } },
   { true,  false, 540, 1890, -90, { 540, 1650, 0 }, { 540, 1450, 0 }, { 1100, 1450, 0 } },
-  { true,  true, 720, 1900,  -90, { 975, 1900, 0 }, { 1220, 1900, 0 }, { 0, 0, 0 } },
+  { true,  true, 750, 1900,  -90, { 750, 1810, 0 }, { 1500, 1800, 0 }, { 0, 0, 0 } },
   { false, false,  0,    0, -90, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } },
   { false, false,  0,    0, -90, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }
 };
@@ -225,13 +225,38 @@ void TaskMatch(void *pvParameters)
         {
           ExecutePamiMovement(config->matchMove1, IHM::team);
           ExecutePamiMovement(config->matchMove2, IHM::team);
+          if (config->isNinja)
+          {
+            if (IHM::team == IHM::Team::Jaune)
+            {
+              Motion::Turn(-90);
+            }
+            else{
+              Motion::Turn(90);
+            }
+            Motion::Go(-400);
+            Motion::SetCurrentY(1910);
+            Motion::SetCurrentRot(-90);
+            const float targetX = TeamAwareX(1630, IHM::team);
+            Motion::GoTo(targetX, 1680);
+            //delay(7000);
+            // if (IHM::team == IHM::Team::Jaune)
+            // {
+            //   Motion::Turn(-100);
+            // }
+            // else{
+            //   Motion::Turn(-80);
+            // }
+            // Motion::Go(150);
+            
+          }
+          
         }
         else
         {
           println("Invalid PAMI number %d in MATCH_RUN second move", numPami);
         }
 
-        ServoAX12::SetServoPosition(ServoID::Bras, ServoPosition::Pos2);
 
         println("Stop !");
         println("------");
@@ -253,6 +278,9 @@ void TaskMatch(void *pvParameters)
         static bool pos = false;
         if (!pos)
         {
+          
+          ServoAX12::SetServoPosition(ServoID::Bras, ServoPosition::Pos2);
+
           ServoAX12::SetServoPosition(ServoID::VL53,ServoPosition::Pos2, 5000);
           while(ServoAX12::IsServoMoving(ServoID::VL53))
           {
