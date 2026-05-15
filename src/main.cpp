@@ -238,8 +238,8 @@ void TaskMatch(void *pvParameters)
             Motion::Go(-400);
             Motion::SetCurrentY(1910);
             Motion::SetCurrentRot(-90);
-            const float targetX = TeamAwareX(1630, IHM::team);
-            Motion::GoTo(targetX, 1680);
+            const float targetX = TeamAwareX(1780, IHM::team);
+            Motion::GoTo(targetX, 1640);
             // delay(7000);
             //  if (IHM::team == IHM::Team::Jaune)
             //  {
