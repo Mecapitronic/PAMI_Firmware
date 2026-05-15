@@ -37,22 +37,21 @@ struct PamiConfig
 
 constexpr int pamiConfigCount = 7;
 static const PamiConfig pamiConfigs[pamiConfigCount] = {
-  { true,  false, 60, 1890, -90, { 60, 1650, 0 }, { 60, 950, 0 }, { 0,0,0 } },
-  { true,  false, 180, 1890, -90, {180, 1650, 0 }, {700, 950, 0 }, { 0,0,0 } },
-  { true,  false, 420, 1890, -90, { 420, 1650, 0 }, { 420, 1320, 0 }, { 1350, 930, 0 } },
-  { true,  false, 540, 1890, -90, { 540, 1650, 0 }, { 540, 1450, 0 }, { 1100, 1450, 0 } },
-  { true,  true, 750, 1900,  -90, { 750, 1810, 0 }, { 1500, 1800, 0 }, { 0, 0, 0 } },
-  { false, false,  0,    0, -90, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } },
-  { false, false,  0,    0, -90, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }
-};
+    {true, false, 60, 1890, -90, {60, 1650, 0}, {60, 950, 0}, {0, 0, 0}},
+    {true, false, 180, 1890, -90, {180, 1650, 0}, {700, 950, 0}, {0, 0, 0}},
+    {true, false, 420, 1890, -90, {420, 1650, 0}, {420, 1320, 0}, {1350, 930, 0}},
+    {true, false, 540, 1890, -90, {540, 1650, 0}, {540, 1450, 0}, {1100, 1450, 0}},
+    {true, true, 750, 1900, -90, {750, 1810, 0}, {1500, 1800, 0}, {0, 0, 0}},
+    {false, false, 0, 0, -90, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}},
+    {false, false, 0, 0, -90, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}}};
 
-const PamiConfig* GetPamiConfig(int numPami)
+const PamiConfig *GetPamiConfig(int numPami)
 {
   if (numPami < 1 || numPami > pamiConfigCount)
   {
     return nullptr;
   }
-  const PamiConfig& config = pamiConfigs[numPami - 1];
+  const PamiConfig &config = pamiConfigs[numPami - 1];
   return config.enabled ? &config : nullptr;
 }
 
@@ -61,16 +60,16 @@ float TeamAwareX(float x, IHM::Team team)
   return (team == IHM::Team::Bleu) ? MirrorX(x) : x;
 }
 
-void ApplyStartPose(const PamiConfig& config, IHM::Team team)
+void ApplyStartPose(const PamiConfig &config, IHM::Team team)
 {
   Motion::SetCurrentRot(config.startHeading);
   Motion::SetCurrentX(TeamAwareX(config.startX, team));
   Motion::SetCurrentY(config.startY);
 }
 
-void ExecutePamiMovement(const PamiMovement& move, IHM::Team team)
+void ExecutePamiMovement(const PamiMovement &move, IHM::Team team)
 {
-  if(move.x == 0 || move.y == 0)
+  if (move.x == 0 || move.y == 0)
   {
     // No movement
     return;
@@ -140,7 +139,7 @@ void TaskMatch(void *pvParameters)
         // Motion::SetCurrentX(Motion::centerPositionMm);
         Motion::SetCurrentRot(-90);
 
-        const PamiConfig* config = GetPamiConfig(numPami);
+        const PamiConfig *config = GetPamiConfig(numPami);
         if (config)
         {
           ApplyStartPose(*config, IHM::team);
@@ -166,7 +165,7 @@ void TaskMatch(void *pvParameters)
         ServoAX12::SetServoPosition(ServoID::VL53, ServoPosition::Pos2);
         ServoAX12::SetServoPosition(ServoID::Bras, ServoPosition::Pos1);
 
-        if(IHM::switchMode == 1)
+        if (IHM::switchMode == 1)
         {
           delay(10000);
         }
@@ -175,7 +174,7 @@ void TaskMatch(void *pvParameters)
           delay(3000);
         }
 
-        const PamiConfig* config = GetPamiConfig(numPami);
+        const PamiConfig *config = GetPamiConfig(numPami);
         if (config)
         {
           ExecutePamiMovement(config->initialMove, IHM::team);
@@ -199,7 +198,7 @@ void TaskMatch(void *pvParameters)
           vTaskDelay(100);
           if (config)
           {
-            if(config->isNinja)
+            if (config->isNinja)
               break;
           }
         }
@@ -210,10 +209,10 @@ void TaskMatch(void *pvParameters)
         Motion::SetMaxSpeed(Motion::maxSpeed);
         Motion::SetAcceleration(Motion::maxAcceleration);
 
-        if(IHM::switchMode == 1)
+        if (IHM::switchMode == 1)
         {
-          //Motion::SetOpponentChecking(true);
-          // !!! Attention enchaine tous les mouvements d'un coup en cas de detection !!!
+          // Motion::SetOpponentChecking(true);
+          //  !!! Attention enchaine tous les mouvements d'un coup en cas de detection !!!
           Motion::SetOpponentChecking(true);
         }
         else
@@ -231,7 +230,8 @@ void TaskMatch(void *pvParameters)
             {
               Motion::Turn(-90);
             }
-            else{
+            else
+            {
               Motion::Turn(90);
             }
             Motion::Go(-400);
@@ -239,24 +239,21 @@ void TaskMatch(void *pvParameters)
             Motion::SetCurrentRot(-90);
             const float targetX = TeamAwareX(1630, IHM::team);
             Motion::GoTo(targetX, 1680);
-            //delay(7000);
-            // if (IHM::team == IHM::Team::Jaune)
-            // {
-            //   Motion::Turn(-100);
-            // }
-            // else{
-            //   Motion::Turn(-80);
-            // }
-            // Motion::Go(150);
-            
+            // delay(7000);
+            //  if (IHM::team == IHM::Team::Jaune)
+            //  {
+            //    Motion::Turn(-100);
+            //  }
+            //  else{
+            //    Motion::Turn(-80);
+            //  }
+            //  Motion::Go(150);
           }
-          
         }
         else
         {
           println("Invalid PAMI number %d in MATCH_RUN second move", numPami);
         }
-
 
         println("Stop !");
         println("------");
@@ -278,11 +275,11 @@ void TaskMatch(void *pvParameters)
         static bool pos = false;
         if (!pos)
         {
-          
+
           ServoAX12::SetServoPosition(ServoID::Bras, ServoPosition::Pos2);
 
-          ServoAX12::SetServoPosition(ServoID::VL53,ServoPosition::Pos2, 5000);
-          while(ServoAX12::IsServoMoving(ServoID::VL53))
+          ServoAX12::SetServoPosition(ServoID::VL53, ServoPosition::Pos2, 5000);
+          while (ServoAX12::IsServoMoving(ServoID::VL53))
           {
             vTaskDelay(100);
           }
@@ -290,8 +287,8 @@ void TaskMatch(void *pvParameters)
         }
         else
         {
-          ServoAX12::SetServoPosition(ServoID::VL53,ServoPosition::Pos1, 5000);
-          while(ServoAX12::IsServoMoving(ServoID::VL53))
+          ServoAX12::SetServoPosition(ServoID::VL53, ServoPosition::Pos1, 5000);
+          while (ServoAX12::IsServoMoving(ServoID::VL53))
           {
             vTaskDelay(100);
           }
@@ -335,8 +332,8 @@ void TaskTeleplot(void *pvParameters)
         const Pose pose = Motion::GetCurrentPose();
         Printer::teleplot("pos", pose);
         Printer::teleplot("ang", pose.h);
-        //Printer::teleplot("speed_D", Motion::motor_D.speed());
-        //Printer::teleplot("speed_G", Motion::motor_G.speed());
+        // Printer::teleplot("speed_D", Motion::motor_D.speed());
+        // Printer::teleplot("speed_G", Motion::motor_G.speed());
 
         // Countdown
         if (lastMatchTime != (int)(Match::getMatchTimeSec()) && Match::matchState != Match::State::MATCH_BOOT)
@@ -383,7 +380,7 @@ void TaskHandleCommand(void *pvParameters)
           if (cmd.size > 0)
           {
             Motion::SetMaxSpeed(cmd.data[0]);
-            //preferences.putInt("Speed",cmd.data[0]);
+            // preferences.putInt("Speed",cmd.data[0]);
             println("Speed : %f", Motion::GetMaxSpeed());
           }
           println("Motor D speed: %f", Motion::motor_D.maxSpeed());
@@ -395,7 +392,7 @@ void TaskHandleCommand(void *pvParameters)
           if (cmd.size > 0)
           {
             Motion::SetAcceleration(cmd.data[0]);
-            //preferences.putInt("Accel",cmd.data[0]);
+            // preferences.putInt("Accel",cmd.data[0]);
             println("Accel : %f", Motion::GetAcceleration());
           }
           println("Motor D accel: %f", Motion::motor_D.getAcceleration());
@@ -438,7 +435,7 @@ void TaskHandleCommand(void *pvParameters)
         }
         if (cmd.cmdStartsWith("RGB"))
         {
-          //RGB:0:255:0
+          // RGB:0:255:0
           if (cmd.size == 3)
           {
             // IHM::led[0].setRGB(cmd.data[0], cmd.data[1], cmd.data[2]);
@@ -450,19 +447,19 @@ void TaskHandleCommand(void *pvParameters)
         }
         if (cmd.cmdStartsWith("HSV"))
         {
-          //HSV:0:255:255
-          //  if (cmd.size == 1)
-          //  {
-          //    led[0].setHue(cmd.data[0]);
-          //  }
-          //  if (cmd.size == 3)
-          //  {
-          //    led[0].setHSV(cmd.data[0], cmd.data[1], cmd.data[2]);
-          //  }
-          //  FastLED.show();
-          //  print("HSV : ", led[0].red);
-          //  print(" ", led[0].green);
-          //  println(" ", led[0].blue);
+          // HSV:0:255:255
+          //   if (cmd.size == 1)
+          //   {
+          //     led[0].setHue(cmd.data[0]);
+          //   }
+          //   if (cmd.size == 3)
+          //   {
+          //     led[0].setHSV(cmd.data[0], cmd.data[1], cmd.data[2]);
+          //   }
+          //   FastLED.show();
+          //   print("HSV : ", led[0].red);
+          //   print(" ", led[0].green);
+          //   println(" ", led[0].blue);
         }
       }
     }
