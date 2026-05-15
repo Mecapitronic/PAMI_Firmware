@@ -37,14 +37,13 @@ struct PamiConfig
 
 constexpr int pamiConfigCount = 7;
 static const PamiConfig pamiConfigs[pamiConfigCount] = {
-  { true,  false, 60, 1890, -90, { 60, 1650, 0 }, { 60, 950, 0 }, { 0,0,0 } },
-  { true,  false, 180, 1890, -90, {180, 1650, 0 }, {180, 1200, 0 }, { 700, 950,0 } },
-  { true,  false, 420, 1890, -90, { 420, 1650, 0 }, { 420, 1320, 0 }, { 1350, 930, 0 } },
-  { true,  false, 540, 1890, -90, { 540, 1650, 0 }, { 540, 1450, 0 }, { 1100, 1450, 0 } },
-  { true,  true, 750, 1900,  -90, { 750, 1810, 0 }, { 1500, 1800, 0 }, { 0, 0, 0 } },
-  { false, false,  0,    0, -90, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } },
-  { false, false,  0,    0, -90, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }
-};
+    {true, false, 60, 1890, -90, {60, 1650, 0}, {60, 950, 0}, {0, 0, 0}},
+    {true, false, 180, 1890, -90, {180, 1650, 0}, {180, 1200, 0}, {700, 950, 0}},
+    {true, false, 420, 1890, -90, {420, 1650, 0}, {420, 1320, 0}, {1350, 930, 0}},
+    {true, false, 540, 1890, -90, {540, 1650, 0}, {540, 1450, 0}, {1100, 1450, 0}},
+    {true, true, 750, 1900, -90, {750, 1810, 0}, {1500, 1800, 0}, {0, 0, 0}},
+    {false, false, 0, 0, -90, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}},
+    {false, false, 0, 0, -90, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}}};
 
 const PamiConfig *GetPamiConfig(int numPami)
 {
@@ -126,11 +125,34 @@ void TaskMatch(void *pvParameters)
       {
         numPami = Match::GetNumPami();
         Motion::SetOpponentChecking(false);
+        if (Match::getMatchTimeMs() > 10000)
+        {
+          static bool pos = false;
+          if (!pos)
+          {
+            ServoAX12::SetServoPosition(ServoID::VL53, ServoPosition::Pos2, 5000);
+            while (ServoAX12::IsServoMoving(ServoID::VL53))
+            {
+              vTaskDelay(100);
+            }
+            pos = true;
+          }
+          else
+          {
+            ServoAX12::SetServoPosition(ServoID::VL53, ServoPosition::Pos1, 5000);
+            while (ServoAX12::IsServoMoving(ServoID::VL53))
+            {
+              vTaskDelay(100);
+            }
+            pos = false;
+          }
+        }
       }
 
       // En attente de retrait de la tirette pour démarrer le match
       if (Match::matchState == Match::State::MATCH_WAIT)
       {
+        ServoAX12::SetServoPosition(ServoID::VL53, ServoPosition::Pos1, 5000);
         Motion::SetOpponentChecking(false);
         Screen::SetPose(Motion::GetCurrentPose());
         // Start Position
