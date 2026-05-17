@@ -99,7 +99,7 @@ void setup()
   AddServo(ServoID::Bras, "Bras", ServoConfig(2, std::array<int32_t, MAX_SERVO_POSITIONS>{160, 160, 210, 160, 220}, 5));
 
   TaskThread(TaskMatch, "TaskMatch", 20000, 15, 0);
-  TaskThread(TaskTeleplot, "TaskTeleplot", 5000, 1, 0);
+  TaskThread(TaskTeleplot, "TaskTeleplot", 20000, 1, 0);
   TaskThread(TaskHandleCommand, "TaskHandleCommand", 10000, 15, 0);
 }
 
@@ -339,7 +339,6 @@ Pose MapBoundaries[] = {{0, 0, 0}, {0, 2000, 0}, {3000, 2000, 0}, {3000, 0, 0}};
 
 void TaskTeleplot(void *pvParameters)
 {
-  int lastMatchTime = 0;
   println("Start TaskTeleplot");
   Timeout teleplotTO;
   teleplotTO.Start(100);
@@ -353,17 +352,10 @@ void TaskTeleplot(void *pvParameters)
       if (teleplotTO.IsTimeOut())
       {
         const Pose pose = Motion::GetCurrentPose();
-        Printer::teleplot("pos", pose);
-        Printer::teleplot("ang", pose.h);
-        // Printer::teleplot("speed_D", Motion::motor_D.speed());
-        // Printer::teleplot("speed_G", Motion::motor_G.speed());
+        // Printer::teleplot("pos", pose);
+        // Printer::teleplot("ang", pose.h);
 
-        // Countdown
-        if (lastMatchTime != (int)(Match::getMatchTimeSec()) && Match::matchState != Match::State::MATCH_BOOT)
-        {
-          println("Match Time : %i", (int)(Match::getMatchTimeSec()));
-          lastMatchTime = (int)(Match::getMatchTimeSec());
-        }
+        // ToF_VL53L8CX::printProcessing();
       }
     }
     catch (const std::exception &e)
@@ -455,34 +447,6 @@ void TaskHandleCommand(void *pvParameters)
           println("currentPosition: %i", (int)Motion::motor_G.currentPosition());
           // println("computeNewSpeed:",(long)Motion::motor_G.computeNewSpeed());
           println("-----");
-        }
-        if (cmd.cmdStartsWith("RGB"))
-        {
-          // RGB:0:255:0
-          if (cmd.size == 3)
-          {
-            // IHM::led[0].setRGB(cmd.data[0], cmd.data[1], cmd.data[2]);
-            // FastLED.show();
-            // print("RGB : ", led[0].red);
-            // print(" ", led[0].green);
-            // println(" ", led[0].blue);
-          }
-        }
-        if (cmd.cmdStartsWith("HSV"))
-        {
-          // HSV:0:255:255
-          //   if (cmd.size == 1)
-          //   {
-          //     led[0].setHue(cmd.data[0]);
-          //   }
-          //   if (cmd.size == 3)
-          //   {
-          //     led[0].setHSV(cmd.data[0], cmd.data[1], cmd.data[2]);
-          //   }
-          //   FastLED.show();
-          //   print("HSV : ", led[0].red);
-          //   print(" ", led[0].green);
-          //   println(" ", led[0].blue);
         }
       }
     }
