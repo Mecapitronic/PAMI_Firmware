@@ -1,4 +1,4 @@
-#include "Motion.h"
+#include "motion.h"
 using namespace Printer;
 using namespace std;
 
@@ -87,6 +87,14 @@ namespace Motion
     long stepValue = ConvertDistToStep(_dist);
     motor_G.move(-stepValue);
     motor_D.move(stepValue);
+
+    // Calculate absolute target position
+    float headingRad = currentPose.h * (PI / 180.0f);
+    Pose target = Pose((int16_t)(currentPose.x + _dist * cosf(headingRad)),
+                       (int16_t)(currentPose.y + _dist * sinf(headingRad)),
+                       (int16_t)currentPose.h);
+    Screen::SetTarget(target);
+
     ProcessMove();
   }
 
@@ -95,6 +103,13 @@ namespace Motion
     long stepValue = ConvertAngleToStep(_angle);
     motor_G.move(-stepValue);
     motor_D.move(-stepValue);
+
+    // Calculate absolute target orientation
+    Pose target = Pose((int16_t)currentPose.x,
+                       (int16_t)currentPose.y,
+                       NormalizeAngleDeg(currentPose.h + _angle));
+    Screen::SetTarget(target);
+
     ProcessMove();
   }
 
@@ -198,7 +213,7 @@ namespace Motion
           //tempDistance_G = tempDistance_G + motor_G.distanceToGo();
 
           println("Opponent detected");
-
+          break;
           Timeout opponentTimeout;
           opponentTimeout.Start(2000);
           // break;
@@ -259,6 +274,8 @@ namespace Motion
     targetMove.rotation1 = NormalizeAngleDeg((targetAngleRadians - currentRotRadians) * (180.0f / M_PI));
 
     targetMove.rotation2 = 0; // Pas de rotation finale
+    Pose target = Pose((int16_t)_x, (int16_t)_y, degrees(targetAngleRadians));
+    Screen::SetTarget(target);
   }
 
   void ConvertToPolar(float _x, float _y, float _rot)
@@ -277,6 +294,8 @@ namespace Motion
 
     // Calculer la rotation la plus courte pour rotation2
     targetMove.rotation2 = NormalizeAngleDeg((targetRotRadians - targetAngleRadians) * (180.0f / M_PI));
+    Pose target = Pose((int16_t)_x, (int16_t)_y, degrees(targetRotRadians));
+    Screen::SetTarget(target);
   }
 
   void GoTo(PoseF _target)
