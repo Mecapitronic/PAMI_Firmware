@@ -26,6 +26,8 @@ struct PamiMovement
 struct PamiConfig
 {
   bool enabled;
+  uint8_t servoIdVL53;
+  uint8_t servoIdBras;
   bool isNinja;
   int startX;
   int startY;
@@ -37,13 +39,11 @@ struct PamiConfig
 
 constexpr int pamiConfigCount = 7;
 static const PamiConfig pamiConfigs[pamiConfigCount] = {
-    {true, false, 81, 1912, -90, {81, 1650, 0}, {81, 950, 0}, {0, 0, 0}},
-    {true, false, 213, 1912, -90, {213, 1650, 0}, {213, 1200, 0}, {800, 950, 0}},
-    {true, false, 387, 1912, -90, {387, 1650, 0}, {387, 1320, 0}, {1400, 900, 0}},
-    {true, false, 519, 1912, -90, {519, 1650, 0}, {519, 1450, 0}, {1130, 1450, 0}},
-    {true, true, 750, 1900, -90, {750, 1810, 0}, {750, 1800, 0}, {0, 0, 0}},
-    {false, false, 0, 0, -90, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}},
-    {false, false, 0, 0, -90, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}}};
+  {true, 1, 2, false, 81, 1912, -90, {81, 1650, 0}, {81, 950, 0}, {0, 0, 0}},
+  {true, 3, 17, false, 213, 1912, -90, {213, 1650, 0}, {213, 1200, 0}, {800, 950, 0}},
+  {true, 1, 2, false, 387, 1912, -90, {387, 1650, 0}, {387, 1320, 0}, {1400, 900, 0}},
+  {true, 1, 2, false, 519, 1912, -90, {519, 1650, 0}, {519, 1450, 0}, {1130, 1450, 0}},
+  {true, 1, 2, false, 750, 1900, -90, {750, 1810, 0}, {750, 1800, 0}, {0, 0, 0}},};
 
 const PamiConfig *GetPamiConfig(int numPami)
 {
@@ -82,6 +82,19 @@ void ExecutePamiMovement(const PamiMovement &move, IHM::Team team)
   }
 }
 
+void ApplyAx12PamiConfig(const PamiConfig &config)
+{
+  const ServoConfig vl53Servo(config.servoIdVL53,
+                              std::array<int32_t, MAX_SERVO_POSITIONS>{150, 150, 200, 150, 200},
+                              5);
+  const ServoConfig brasServo(config.servoIdBras,
+                              std::array<int32_t, MAX_SERVO_POSITIONS>{160, 160, 250, 160, 220},
+                              5);
+
+  ServoAX12::AddOrUpdateServo(ServoID::VL53, "VL53", vl53Servo);
+  ServoAX12::AddOrUpdateServo(ServoID::Bras, "Bras", brasServo);
+}
+
 void setup()
 {
   ESP32_Helper::Initialisation();
@@ -92,14 +105,17 @@ void setup()
 
   Motion::Initialisation();
 
-  // Valeurs par défaut : { ax12Id, {positions[0]=min ... positions[n-1]=max}, count }
-  // Modifiables via commande : AX12Config:<nom>:<field>:<valeur>  (field: id|cnt|p0..p9)
-  // Stockées en NVS, persistantes au redémarrage
-  AddServo(ServoID::VL53, "VL53", ServoConfig(1, std::array<int32_t, MAX_SERVO_POSITIONS>{150, 150, 180, 150, 200}, 5));
-  AddServo(ServoID::Bras, "Bras", ServoConfig(2, std::array<int32_t, MAX_SERVO_POSITIONS>{160, 160, 210, 160, 220}, 5));
+    // La config AX12 est entièrement pilotée par pamiConfigs.
+  
+  int numPami = Match::GetNumPami();
+  const PamiConfig *config = GetPamiConfig(numPami);
+  if (config)
+  {
+      ApplyAx12PamiConfig(*config);
+  }
 
   TaskThread(TaskMatch, "TaskMatch", 20000, 15, 0);
-  TaskThread(TaskTeleplot, "TaskTeleplot", 20000, 1, 0);
+  //TaskThread(TaskTeleplot, "TaskTeleplot", 20000, 1, 0);
   TaskThread(TaskHandleCommand, "TaskHandleCommand", 10000, 15, 0);
 }
 
@@ -124,8 +140,13 @@ void TaskMatch(void *pvParameters)
       if (Match::matchState == Match::State::MATCH_BOOT)
       {
         numPami = Match::GetNumPami();
+        const PamiConfig *config = GetPamiConfig(numPami);
+        if (config)
+        {
+          ApplyAx12PamiConfig(*config);
+        }
         Motion::SetOpponentChecking(false);
-        if (Match::getMatchTimeMs() > 10000)
+        if (Match::getMatchTimeMs() > 10000 && IHM::switchMode == 1)
         {
           static bool pos = false;
           if (!pos)
@@ -153,6 +174,7 @@ void TaskMatch(void *pvParameters)
       if (Match::matchState == Match::State::MATCH_WAIT)
       {
         ServoAX12::SetServoPosition(ServoID::VL53, ServoPosition::Pos1, 5000);
+        ServoAX12::SetServoPosition(ServoID::Bras, ServoPosition::Pos1, 5000);
         Motion::SetOpponentChecking(false);
         Screen::SetPose(Motion::GetCurrentPose());
         // Start Position
@@ -166,123 +188,173 @@ void TaskMatch(void *pvParameters)
         if (config)
         {
           ApplyStartPose(*config, IHM::team);
+          ApplyAx12PamiConfig(*config);
         }
         else
         {
           println("Invalid PAMI number %d in MATCH_WAIT", numPami);
         }
-        //   else if (numPami == 2)
-        //     setCurrentY(1710);
-        //   else if (numPami == 3)
-        //     setCurrentY(1603);
-        //   else
-        //     println("ERROR robot number");
       }
 
       // Match en cours
       if (Match::matchState == Match::State::MATCH_RUN)
       {
         println("-------");
-        println("Start init position after 10 Sec !");
+        println("Start Match");
 
         ServoAX12::SetServoPosition(ServoID::VL53, ServoPosition::Pos2);
         ServoAX12::SetServoPosition(ServoID::Bras, ServoPosition::Pos1);
 
-        if (IHM::switchMode == 1)
+        if(IHM::switchMode == 0)
+        {
+          Motion::SetOpponentChecking(false);
+           VL53L8CX_ResultsData data = ToF_VL53L8CX::getSensorData();
+
+           int turn = 0;
+           int distance = 0;
+           int column[8] = {0,0,0,0,0,0,0,0};
+           int distMax = 300;
+           for (size_t i = 0; i < 8; i++)
+           {              
+              if(data.target_status[i*8] == 5 && data.distance_mm[i*8] < distMax)
+              {
+                // detect at left, fisrt column
+                turn +=3;
+                column[7]++;
+              }
+              if(data.target_status[i*8+1] == 5 && data.distance_mm[i*8+1] < distMax)
+              {
+                // detect at left, second column
+                turn +=2;
+                column[6]++;
+              }
+              if(data.target_status[i*8+2] == 5 && data.distance_mm[i*8+2] < distMax)
+              {
+                // detect at left, third column
+                turn +=1;
+                column[5]++;
+              }
+              
+              if(data.target_status[i*8+3] == 5 && data.distance_mm[i*8+3] < distMax)
+              {
+                // detect at center
+                distance += (data.distance_mm[i*8+3]-200)/8/2;
+                column[4]++;
+              }
+              if(data.target_status[i*8+4] == 5 && data.distance_mm[i*8+4] < distMax)
+              {
+                // detect at center
+                distance += (data.distance_mm[i*8+4]-200)/8/2;
+                column[3]++;
+              }
+              
+              if(data.target_status[i*8+5] == 5 && data.distance_mm[i*8+5] < distMax)
+              {
+                // detect at right, third column
+                turn -=1;
+                column[2]++;
+              }              
+              if(data.target_status[i*8+6] == 5 && data.distance_mm[i*8+6] < distMax)
+              {
+                // detect at right, second column
+                turn -=2;
+                column[1]++;
+              }
+              if(data.target_status[i*8+7] == 5 && data.distance_mm[i*8+7] < distMax)
+              {
+                // detect at right, fisrt column
+                turn -=3;
+                column[0]++;
+              }
+              
+            Screen::SetObstacle(i, column[i]);
+           }
+          Motion::Turn(turn);
+          Motion::Go(distance);
+
+        }
+        else
         {
           delay(10000);
-        }
-        else
-        {
-          delay(3000);
-        }
 
-        const PamiConfig *config = GetPamiConfig(numPami);
-        if (config)
-        {
-          ExecutePamiMovement(config->initialMove, IHM::team);
-        }
-        else
-        {
-          println("Invalid PAMI number %d in MATCH_RUN", numPami);
-        }
-
-        println("-------");
-        println("Wait For 85 Sec !");
-        int lastMatchTime = 0;
-        while (Match::getMatchTimeMs() < Match::time_start_match && IHM::switchMode == 1)
-        {
-          // Countdown to start
-          if (lastMatchTime != (int)(Match::getMatchTimeSec()))
-          {
-            println("Match Time : %i", (int)(Match::getMatchTimeSec()));
-            lastMatchTime = (int)(Match::getMatchTimeSec());
-          }
-          vTaskDelay(100);
+          const PamiConfig *config = GetPamiConfig(numPami);
           if (config)
           {
-            if (config->isNinja)
-              break;
+            ExecutePamiMovement(config->initialMove, IHM::team);
           }
-        }
-
-        println("-------");
-        println("Start !");
-
-        Motion::SetMaxSpeed(Motion::maxSpeed);
-        Motion::SetAcceleration(Motion::maxAcceleration);
-
-        if (IHM::switchMode == 1)
-        {
-          // Motion::SetOpponentChecking(true);
-          //  !!! Attention enchaine tous les mouvements d'un coup en cas de detection !!!
-          Motion::SetOpponentChecking(true);
-        }
-        else
-        {
-          Motion::SetOpponentChecking(true);
-        }
-
-        if (config)
-        {
-          ExecutePamiMovement(config->matchMove1, IHM::team);
-          ExecutePamiMovement(config->matchMove2, IHM::team);
-          if (config->isNinja)
+          else
           {
-            if (IHM::team == IHM::Team::Jaune)
-            {
-              Motion::Turn(-90);
-            }
-            else
-            {
-              Motion::Turn(90);
-            }
-            Motion::Go(-400);
-            Motion::SetCurrentY(1910);
-            Motion::SetCurrentRot(-90);
-            const float targetX = TeamAwareX(1780, IHM::team);
-            Motion::GoTo(targetX, 1640);
-            // delay(7000);
-            //  if (IHM::team == IHM::Team::Jaune)
-            //  {
-            //    Motion::Turn(-100);
-            //  }
-            //  else{
-            //    Motion::Turn(-80);
-            //  }
-            //  Motion::Go(150);
+            println("Invalid PAMI number %d in MATCH_RUN", numPami);
           }
-        }
-        else
-        {
-          println("Invalid PAMI number %d in MATCH_RUN second move", numPami);
-        }
 
-        println("Stop !");
-        println("------");
+          println("-------");
+          println("Wait For 85 Sec !");
+          int lastMatchTime = 0;
+          while (Match::getMatchTimeMs() < Match::time_start_match && IHM::switchMode == 1)
+          {
+            // Countdown to start
+            if (lastMatchTime != (int)(Match::getMatchTimeSec()))
+            {
+              println("Match Time : %i", (int)(Match::getMatchTimeSec()));
+              lastMatchTime = (int)(Match::getMatchTimeSec());
+            }
+            vTaskDelay(100);
+            if (config)
+            {
+              if (config->isNinja)
+                break;
+            }
+          }
 
-        // Fin des actions
-        Match::matchState = Match::State::MATCH_STOP;
+          println("-------");
+          println("Start !");
+
+          Motion::SetMaxSpeed(Motion::maxSpeed);
+          Motion::SetAcceleration(Motion::maxAcceleration);
+
+          Motion::SetOpponentChecking(true);
+
+          if (config)
+          {
+            ExecutePamiMovement(config->matchMove1, IHM::team);
+            ExecutePamiMovement(config->matchMove2, IHM::team);
+            if (config->isNinja)
+            {
+              if (IHM::team == IHM::Team::Jaune)
+              {
+                Motion::Turn(-90);
+              }
+              else
+              {
+                Motion::Turn(90);
+              }
+              Motion::Go(-400);
+              Motion::SetCurrentY(1910);
+              Motion::SetCurrentRot(-90);
+              const float targetX = TeamAwareX(1780, IHM::team);
+              Motion::GoTo(targetX, 1640);
+              // delay(7000);
+              //  if (IHM::team == IHM::Team::Jaune)
+              //  {
+              //    Motion::Turn(-100);
+              //  }
+              //  else{
+              //    Motion::Turn(-80);
+              //  }
+              //  Motion::Go(150);
+            }
+          }
+          else
+          {
+            println("Invalid PAMI number %d in MATCH_RUN second move", numPami);
+          }
+
+          println("Stop !");
+          println("------");
+
+          // Fin des actions
+          Match::matchState = Match::State::MATCH_STOP;
+        }
       }
 
       // Arrêt des PAMI
