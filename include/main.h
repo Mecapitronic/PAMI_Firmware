@@ -11,10 +11,9 @@
 #include <Wire.h>
 #include <math.h>
 
-using namespace std;
-using namespace Printer;
+#include "pami_config.h"
 
-void TaskLoop(void *pvParameters);
+void ApplyPamiConfig();
 
 void TaskMatch(void *pvParameters);
 void TaskTeleplot(void *pvParameters);

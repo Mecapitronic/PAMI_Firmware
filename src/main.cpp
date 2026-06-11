@@ -1,99 +1,12 @@
 #include "main.h"
-#include <esp_task_wdt.h>
 
 using namespace std;
 using namespace Printer;
 using namespace Hardware_Config;
 using namespace ServoAX12;
+using namespace PamiConfiguration;
 
-Adafruit_INA219 ina219;
-
-constexpr float fieldWidthMm = 3000.0f;
-
-inline float MirrorX(float x)
-{
-  return fieldWidthMm - x;
-}
-
-// x, y, waitMs
-struct PamiMovement
-{
-  int x;
-  int y;
-  int waitMs;
-};
-
-struct PamiConfig
-{
-  bool enabled;
-  uint8_t servoIdVL53;
-  uint8_t servoIdBras;
-  bool isNinja;
-  int startX;
-  int startY;
-  int startHeading;
-  PamiMovement initialMove;
-  PamiMovement matchMove1;
-  PamiMovement matchMove2;
-};
-
-constexpr int pamiConfigCount = 7;
-static const PamiConfig pamiConfigs[pamiConfigCount] = {
-  {true, 1, 2, false, 81, 1912, -90, {81, 1650, 0}, {81, 950, 0}, {0, 0, 0}},
-  {true, 3, 17, false, 213, 1912, -90, {213, 1650, 0}, {213, 1200, 0}, {800, 950, 0}},
-  {true, 1, 2, false, 387, 1912, -90, {387, 1650, 0}, {387, 1320, 0}, {1400, 900, 0}},
-  {true, 1, 2, false, 519, 1912, -90, {519, 1650, 0}, {519, 1450, 0}, {1130, 1450, 0}},
-  {true, 1, 2, false, 750, 1900, -90, {750, 1810, 0}, {750, 1800, 0}, {0, 0, 0}},};
-
-const PamiConfig *GetPamiConfig(int numPami)
-{
-  if (numPami < 1 || numPami > pamiConfigCount)
-  {
-        return nullptr;
-  }
-  const PamiConfig &config = pamiConfigs[numPami - 1];
-  return config.enabled ? &config : nullptr;
-}
-
-float TeamAwareX(float x, IHM::Team team)
-{
-  return (team == IHM::Team::Bleu) ? MirrorX(x) : x;
-}
-
-void ApplyStartPose(const PamiConfig &config, IHM::Team team)
-{
-  Motion::SetCurrentRot(config.startHeading);
-  Motion::SetCurrentX(TeamAwareX(config.startX, team));
-  Motion::SetCurrentY(config.startY);
-}
-
-void ExecutePamiMovement(const PamiMovement &move, IHM::Team team)
-{
-  if (move.x == 0 || move.y == 0)
-  {
-    // No movement
-    return;
-  }
-  const float targetX = TeamAwareX(move.x, team);
-  Motion::GoTo(targetX, move.y);
-  if (move.waitMs > 0)
-  {
-    delay(move.waitMs);
-  }
-}
-
-void ApplyAx12PamiConfig(const PamiConfig &config)
-{
-  const ServoConfig vl53Servo(config.servoIdVL53,
-                              std::array<int32_t, MAX_SERVO_POSITIONS>{150, 150, 200, 150, 200},
-                              5);
-  const ServoConfig brasServo(config.servoIdBras,
-                              std::array<int32_t, MAX_SERVO_POSITIONS>{160, 160, 250, 160, 220},
-                              5);
-
-  ServoAX12::AddOrUpdateServo(ServoID::VL53, "VL53", vl53Servo);
-  ServoAX12::AddOrUpdateServo(ServoID::Bras, "Bras", brasServo);
-}
+int numPami = -1;
 
 void setup()
 {
@@ -104,13 +17,13 @@ void setup()
   Power::EnablePower();
 
   Motion::Initialisation();
-
-    // La config AX12 est entièrement pilotée par pamiConfigs.
   
-  int numPami = Match::GetNumPami();
+  numPami = Match::GetNumPami();
   const PamiConfig *config = GetPamiConfig(numPami);
   if (config)
   {
+      Motion::SetCurrentRot(-90);
+      ApplyStartPose(*config);
       ApplyAx12PamiConfig(*config);
   }
 
@@ -127,7 +40,25 @@ void loop()
   vTaskDelete(NULL); // Supprime immédiatement le task Arduino "loop"
 }
 
-int numPami = -1;
+void ApplyPamiConfig()
+{
+  if (numPami == -1 || numPami != Match::GetNumPami())
+  {
+    numPami = Match::GetNumPami();
+    const PamiConfig *config = GetPamiConfig(numPami);
+    if (config)
+    {
+      Motion::SetCurrentRot(-90);
+      ApplyStartPose(*config);
+      ApplyAx12PamiConfig(*config);
+    }
+    else
+    {
+      println("Invalid N° PAMI : %d", numPami);
+    }
+  }
+}
+
 void TaskMatch(void *pvParameters)
 {
   println("Start TaskMatch");
@@ -139,12 +70,7 @@ void TaskMatch(void *pvParameters)
     {
       if (Match::matchState == Match::State::MATCH_BOOT)
       {
-        numPami = Match::GetNumPami();
-        const PamiConfig *config = GetPamiConfig(numPami);
-        if (config)
-        {
-          ApplyAx12PamiConfig(*config);
-        }
+        ApplyPamiConfig();
         Motion::SetOpponentChecking(false);
         if (Match::getMatchTimeMs() > 10000 && IHM::switchMode == 1)
         {
@@ -182,18 +108,7 @@ void TaskMatch(void *pvParameters)
 
         // Motion::SetCurrentY(0);
         // Motion::SetCurrentX(Motion::centerPositionMm);
-        Motion::SetCurrentRot(-90);
-
-        const PamiConfig *config = GetPamiConfig(numPami);
-        if (config)
-        {
-          ApplyStartPose(*config, IHM::team);
-          ApplyAx12PamiConfig(*config);
-        }
-        else
-        {
-          println("Invalid PAMI number %d in MATCH_WAIT", numPami);
-        }
+        ApplyPamiConfig();
       }
 
       // Match en cours
@@ -280,7 +195,7 @@ void TaskMatch(void *pvParameters)
           const PamiConfig *config = GetPamiConfig(numPami);
           if (config)
           {
-            ExecutePamiMovement(config->initialMove, IHM::team);
+            ExecutePamiMovement(config->initialMove);
           }
           else
           {
@@ -316,8 +231,8 @@ void TaskMatch(void *pvParameters)
 
           if (config)
           {
-            ExecutePamiMovement(config->matchMove1, IHM::team);
-            ExecutePamiMovement(config->matchMove2, IHM::team);
+            ExecutePamiMovement(config->matchMove1);
+            ExecutePamiMovement(config->matchMove2);
             if (config->isNinja)
             {
               if (IHM::team == IHM::Team::Jaune)
@@ -331,7 +246,7 @@ void TaskMatch(void *pvParameters)
               Motion::Go(-400);
               Motion::SetCurrentY(1910);
               Motion::SetCurrentRot(-90);
-              const float targetX = TeamAwareX(1780, IHM::team);
+              const float targetX = TeamAwareX(1780);
               Motion::GoTo(targetX, 1640);
               // delay(7000);
               //  if (IHM::team == IHM::Team::Jaune)
