@@ -48,6 +48,7 @@ namespace Motion
     else
     {
       Motion::SetMaxSpeed(Motion::maxSpeed);
+      println("Speed Max %f", Motion::GetMaxSpeed());
     }
     if(accelPref != 0)
     {
@@ -57,6 +58,7 @@ namespace Motion
     else
     {
       Motion::SetAcceleration(Motion::maxAcceleration);
+      println("Accel Max %f", Motion::GetAcceleration());
     }
   }
 
