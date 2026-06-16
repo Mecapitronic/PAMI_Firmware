@@ -43,7 +43,7 @@ namespace Motion
     if(speedPref != 0)
     {
       Motion::SetMaxSpeed(speedPref);
-      println("Speed Pref : %i", speedPref);
+      println("Speed Pref %i", speedPref);
     }
     else
     {
@@ -53,7 +53,7 @@ namespace Motion
     if(accelPref != 0)
     {
       Motion::SetAcceleration(accelPref);
-      println("Accel Pref : %i", accelPref);
+      println("Accel Pref %i", accelPref);
     }
     else
     {
@@ -188,10 +188,6 @@ namespace Motion
     {
       vTaskDelay(1);
       updatePoseFromMotors(motor_D.currentPosition(), motor_G.currentPosition());
-      // print(">Dspeed:");println(motor_D.speed());
-      // print(">DdistanceToGo:");println( (int)motor_D.distanceToGo());
-      // print(">Gspeed:");println( motor_G.speed());
-      // print(">GdistanceToGo:");println( (int)motor_G.distanceToGo());
       if (opponentChecking)
       {
         // if we need to stop
@@ -308,7 +304,7 @@ namespace Motion
   void GoTo(float _x, float _y)
   {
     ConvertToPolar(_x, _y);
-    println("GoTo Polar : rot1=%f dist=%f rot2=%f", targetMove.rotation1, targetMove.distance, targetMove.rotation2);
+    println("GoTo Polar rot1=%f dist=%f rot2=%f", targetMove.rotation1, targetMove.distance, targetMove.rotation2);
     Turn(targetMove.rotation1);
     Go(targetMove.distance);
   }
@@ -316,7 +312,7 @@ namespace Motion
   void GoTo(float _x, float _y, float _rot)
   {
     ConvertToPolar(_x, _y, _rot);
-    println("GoTo Polar : rot1=%f dist=%f rot2=%f", targetMove.rotation1, targetMove.distance, targetMove.rotation2);
+    println("GoTo Polar rot1=%f dist=%f rot2=%f", targetMove.rotation1, targetMove.distance, targetMove.rotation2);
     Turn(targetMove.rotation1);
     Go(targetMove.distance);
     Turn(targetMove.rotation2);
@@ -325,7 +321,7 @@ namespace Motion
   void TurnTo(float _x, float _y)
   {
     ConvertToPolar(_x, _y);
-    println("TurnTo Polar : rot1=%f dist=%f rot2=%f", targetMove.rotation1, targetMove.distance, targetMove.rotation2);
+    println("TurnTo Polar rot1=%f dist=%f rot2=%f", targetMove.rotation1, targetMove.distance, targetMove.rotation2);
     Turn(targetMove.rotation1);
   }
 

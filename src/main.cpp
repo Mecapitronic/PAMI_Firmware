@@ -54,7 +54,7 @@ void ApplyPamiConfig()
     }
     else
     {
-      println("Invalid N° PAMI : %d", numPami);
+      println("Invalid N° PAMI %d", numPami);
     }
   }
 }
@@ -210,7 +210,7 @@ void TaskMatch(void *pvParameters)
             // Countdown to start
             if (lastMatchTime != (int)(Match::getMatchTimeSec()))
             {
-              println("Match Time : %i", (int)(Match::getMatchTimeSec()));
+              println("Match Time %i", (int)(Match::getMatchTimeSec()));
               lastMatchTime = (int)(Match::getMatchTimeSec());
             }
             vTaskDelay(100);
@@ -378,31 +378,31 @@ void TaskHandleCommand(void *pvParameters)
         }
         if (cmd.cmdStartsWith("Speed"))
         {
-          // print("Speed : ", cmd);
+          // print("Speed ", cmd);
           if (cmd.size > 0)
           {
             Motion::SetMaxSpeed(cmd.data[0]);
             // preferences.putInt("Speed",cmd.data[0]);
-            println("Speed : %f", Motion::GetMaxSpeed());
+            println("Speed %f", Motion::GetMaxSpeed());
           }
-          println("Motor D speed: %f", Motion::motor_D.maxSpeed());
-          println("Motor G speed: %f", Motion::motor_G.maxSpeed());
+          println("Motor D speed %f", Motion::motor_D.maxSpeed());
+          println("Motor G speed %f", Motion::motor_G.maxSpeed());
         }
         if (cmd.cmdStartsWith("Accel"))
         {
-          // print("Accel : ", cmd);
+          // print("Accel ", cmd);
           if (cmd.size > 0)
           {
             Motion::SetAcceleration(cmd.data[0]);
             // preferences.putInt("Accel",cmd.data[0]);
-            println("Accel : %f", Motion::GetAcceleration());
+            println("Accel %f", Motion::GetAcceleration());
           }
-          println("Motor D accel: %f", Motion::motor_D.getAcceleration());
-          println("Motor G accel: %f", Motion::motor_G.getAcceleration());
+          println("Motor D accel %f", Motion::motor_D.getAcceleration());
+          println("Motor G accel %f", Motion::motor_G.getAcceleration());
         }
         if (cmd.cmdStartsWith("Go"))
         {
-          // print("Go : ", cmd);
+          // print("Go ", cmd);
           if (cmd.size == 1)
             Motion::Go(cmd.data[0]);
           if (cmd.size == 2)
@@ -412,34 +412,34 @@ void TaskHandleCommand(void *pvParameters)
         }
         if (cmd.cmdStartsWith("Turn"))
         {
-          // print("Turn : ", cmd);
+          // print("Turn ", cmd);
           if (cmd.size > 0)
             Motion::Turn(cmd.data[0]);
         }
         if (cmd.cmdStartsWith("Motor"))
         {
-          println("Motor D:");
-          println("speed: %f", Motion::motor_D.speed());
-          println("acceleration: %f", Motion::motor_D.getAcceleration());
-          println("distanceToGo: %i", (int)Motion::motor_D.distanceToGo());
-          println("targetPosition: %i", (int)Motion::motor_D.targetPosition());
-          println("currentPosition: %i", (int)Motion::motor_D.currentPosition());
-          // println("computeNewSpeed:",(long)Motion::motor_D.computeNewSpeed());
+          println("Motor D");
+          println("speed %f", Motion::motor_D.speed());
+          println("acceleration %f", Motion::motor_D.getAcceleration());
+          println("distanceToGo %i", (int)Motion::motor_D.distanceToGo());
+          println("targetPosition %i", (int)Motion::motor_D.targetPosition());
+          println("currentPosition %i", (int)Motion::motor_D.currentPosition());
+          // println("computeNewSpeed",(long)Motion::motor_D.computeNewSpeed());
           println("-----");
-          println("Motor G:");
-          println("speed: %f", Motion::motor_G.speed());
-          println("acceleration: %f", Motion::motor_G.getAcceleration());
-          println("distanceToGo: %i", (int)Motion::motor_G.distanceToGo());
-          println("targetPosition: %i", (int)Motion::motor_G.targetPosition());
-          println("currentPosition: %i", (int)Motion::motor_G.currentPosition());
-          // println("computeNewSpeed:",(long)Motion::motor_G.computeNewSpeed());
+          println("Motor G");
+          println("speed %f", Motion::motor_G.speed());
+          println("acceleration %f", Motion::motor_G.getAcceleration());
+          println("distanceToGo %i", (int)Motion::motor_G.distanceToGo());
+          println("targetPosition %i", (int)Motion::motor_G.targetPosition());
+          println("currentPosition %i", (int)Motion::motor_G.currentPosition());
+          // println("computeNewSpeed",(long)Motion::motor_G.computeNewSpeed());
           println("-----");
         }
       }
     }
     catch (std::exception const &e)
     {
-      print("error : ");
+      print("error ");
       println(e.what());
     }
     if (chrono.Check())
