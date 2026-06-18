@@ -87,6 +87,7 @@ namespace Motion
   void Go(float _dist)
   {
     long stepValue = ConvertDistToStep(_dist);
+    println("Go %f mm, stepValue %i", _dist, (int)stepValue);
     motor_G.move(-stepValue);
     motor_D.move(stepValue);
 
@@ -103,6 +104,7 @@ namespace Motion
   void Turn(float _angle)
   {
     long stepValue = ConvertAngleToStep(_angle);
+    println("Turn %f deg, stepValue %i", _angle, (int)stepValue);
     motor_G.move(-stepValue);
     motor_D.move(-stepValue);
 
@@ -147,7 +149,6 @@ namespace Motion
 
   void ProcessMove()
   {
-
     long tempDistance_D = 0;
     long tempDistance_G = 0;
     const float mmPerStep = circumferenceMM / (stepsPerRevolution * stepMultiplier);
