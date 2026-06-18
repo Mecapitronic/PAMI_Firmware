@@ -18,14 +18,7 @@ void setup()
 
   Motion::Initialisation();
   
-  numPami = Match::GetNumPami();
-  const PamiConfig *config = GetPamiConfig(numPami);
-  if (config)
-  {
-      Motion::SetCurrentRot(-90);
-      ApplyStartPose(*config);
-      ApplyAx12PamiConfig(*config);
-  }
+  ApplyPamiConfig();
 
   TaskThread(TaskMatch, "TaskMatch", 20000, 15, 0);
   //TaskThread(TaskTeleplot, "TaskTeleplot", 20000, 1, 0);
@@ -48,8 +41,10 @@ void ApplyPamiConfig()
     const PamiConfig *config = GetPamiConfig(numPami);
     if (config)
     {
+      println("Applying PAMI Config for PAMI %d", numPami);
       Motion::SetCurrentRot(-90);
       ApplyStartPose(*config);
+      Screen::SetPose(Motion::GetCurrentPose());
       ApplyAx12PamiConfig(*config);
     }
     else
@@ -102,12 +97,6 @@ void TaskMatch(void *pvParameters)
         ServoAX12::SetServoPosition(ServoID::VL53, ServoPosition::Pos1, 5000);
         ServoAX12::SetServoPosition(ServoID::Bras, ServoPosition::Pos1, 5000);
         Motion::SetOpponentChecking(false);
-        Screen::SetPose(Motion::GetCurrentPose());
-        // Start Position
-        // Save Y position and orientation
-
-        // Motion::SetCurrentY(0);
-        // Motion::SetCurrentX(Motion::centerPositionMm);
         ApplyPamiConfig();
       }
 
