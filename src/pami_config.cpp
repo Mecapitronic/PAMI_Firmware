@@ -73,10 +73,10 @@ namespace PamiConfiguration
   void ApplyAx12PamiConfig(const PamiConfig& config)
   {
     const ServoConfig vl53Servo(config.servoIdVL53,
-                                std::array<int32_t, MAX_SERVO_POSITIONS>{0, 160, 200, 160, 360},
+                                std::array<int32_t, MAX_SERVO_POSITIONS>{150, 160, 200, 160, 280},
                                 5);
     const ServoConfig brasServo(config.servoIdBras,
-                                std::array<int32_t, MAX_SERVO_POSITIONS>{0, 160, 250, 160, 360},
+                                std::array<int32_t, MAX_SERVO_POSITIONS>{160, 160, 250, 160, 250},
                                 5);
 
     AddServo(ServoID::VL53, "VL53", vl53Servo);
