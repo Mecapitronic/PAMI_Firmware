@@ -361,6 +361,13 @@ void TaskHandleCommand(void *pvParameters)
       {
         Command cmd = ESP32_Helper::GetCommand();
 
+        if (cmd.cmdStartsWith("MapBound"))
+        {
+          teleplot("MapBound", MapBoundaries[0]);
+          teleplot("MapBound", MapBoundaries[1]);
+          teleplot("MapBound", MapBoundaries[2]);
+          teleplot("MapBound", MapBoundaries[3]);
+        }
         if (cmd.cmdStartsWith("Pos"))
         {
           println("Pos x=%d y=%d h=%d", (int)Motion::GetCurrentPose().x, (int)Motion::GetCurrentPose().y, (int)Motion::GetCurrentPose().h);
