@@ -21,7 +21,7 @@ void setup()
   ApplyPamiConfig();
 
   TaskThread(TaskMatch, "TaskMatch", 20000, 15, 0);
-  //TaskThread(TaskTeleplot, "TaskTeleplot", 20000, 1, 0);
+  TaskThread(TaskTeleplot, "TaskTeleplot", 20000, 1, 0);
   TaskThread(TaskHandleCommand, "TaskHandleCommand", 10000, 15, 0);
 }
 
@@ -328,8 +328,14 @@ void TaskTeleplot(void *pvParameters)
       if (teleplotTO.IsTimeOut())
       {
         const Pose pose = Motion::GetCurrentPose();
-        // Printer::teleplot("pos", pose);
-        // Printer::teleplot("ang", pose.h);
+        Printer::teleplot("pos", pose);
+        Printer::teleplot("ang", pose.h);
+        Printer::teleplot("motor_D_speed", Motion::motor_D.speed());
+        Printer::teleplot("motor_G_speed", Motion::motor_G.speed());
+        Printer::teleplot("motor_D_distToGo", (float)Motion::motor_D.distanceToGo());
+        Printer::teleplot("motor_G_distToGo", (float)Motion::motor_G.distanceToGo());
+        //ServoAX12::TeleplotAllPosition();
+        //ServoAX12::TeleplotAllSpeed();
 
         // ToF_VL53L8CX::printProcessing();
       }
