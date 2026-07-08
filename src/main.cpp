@@ -316,8 +316,7 @@ Pose MapBoundaries[] = {{0, 0, 0}, {0, 2000, 0}, {3000, 2000, 0}, {3000, 0, 0}};
 void TaskTeleplot(void *pvParameters)
 {
   println("Start TaskTeleplot");
-  Timeout teleplotTO;
-  teleplotTO.Start(100);
+  Timeout teleplotTO(100, true);
   Chrono chrono("Teleplot", 1000);
 
   while (true)
@@ -328,14 +327,16 @@ void TaskTeleplot(void *pvParameters)
       if (teleplotTO.IsTimeOut())
       {
         const Pose pose = Motion::GetCurrentPose();
-        Printer::teleplot("pos", pose);
+        /*Printer::teleplot("pos", pose);
         Printer::teleplot("ang", pose.h);
         Printer::teleplot("motor_D_speed", Motion::motor_D.speed());
         Printer::teleplot("motor_G_speed", Motion::motor_G.speed());
         Printer::teleplot("motor_D_distToGo", (float)Motion::motor_D.distanceToGo());
-        Printer::teleplot("motor_G_distToGo", (float)Motion::motor_G.distanceToGo());
-        //ServoAX12::TeleplotAllPosition();
-        //ServoAX12::TeleplotAllSpeed();
+        Printer::teleplot("motor_G_distToGo", (float)Motion::motor_G.distanceToGo());*/
+        ServoAX12::TeleplotAllPosition();
+        ServoAX12::TeleplotAllSpeed();
+        ServoAX12::TeleplotAllLoad();
+        ServoAX12::TeleplotAllMoving();
 
         // ToF_VL53L8CX::printProcessing();
       }
