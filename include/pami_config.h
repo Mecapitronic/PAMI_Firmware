@@ -2,6 +2,9 @@
 #define PAMI_CONFIG_H
 
 #include <cstdint>
+#include "ESP32_Helper.h"
+#include "ESP32_Hardware.h"
+#include "motion.h"
 
 // Forward declaration
 namespace IHM

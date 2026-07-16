@@ -1,10 +1,4 @@
 #include "pami_config.h"
-#include "main.h"
-#include "Hardware_Config.h"
-#include <Motion.h>
-#include <ServoAX12.h>
-#include <Printer.h>
-#include <IHM.h>
 
 using namespace Printer;
 using namespace Hardware_Config;
