@@ -403,9 +403,9 @@ void TaskHandleCommand(void *pvParameters)
           println("Motor D accel %f", Motion::motor_D.getAcceleration());
           println("Motor G accel %f", Motion::motor_G.getAcceleration());
         }
-        if (cmd.cmdStartsWith("Go"))
+        if (cmd.cmdStartsWith("GoTo"))
         {
-          // print("Go ", cmd);
+          // print("GoTo ", cmd);
           if (cmd.size == 1)
             Motion::Go(cmd.data[0]);
           if (cmd.size == 2)
