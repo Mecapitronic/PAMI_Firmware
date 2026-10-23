@@ -333,10 +333,11 @@ void TaskTeleplot(void *pvParameters)
         Printer::teleplot("motor_G_speed", Motion::motor_G.speed());
         Printer::teleplot("motor_D_distToGo", (float)Motion::motor_D.distanceToGo());
         Printer::teleplot("motor_G_distToGo", (float)Motion::motor_G.distanceToGo());*/
-        ServoAX12::TeleplotAllPosition();
-        ServoAX12::TeleplotAllSpeed();
-        ServoAX12::TeleplotAllLoad();
-        ServoAX12::TeleplotAllMoving();
+        //ServoAX12::TeleplotAllPosition();
+        //ServoAX12::TeleplotAllSpeed();
+        //ServoAX12::TeleplotAllLoad();
+        ServoAX12::TeleplotAllFailureCount();
+        //ServoAX12::TeleplotAllTorqueEnable();
 
         // ToF_VL53L8CX::printProcessing();
       }
