@@ -149,6 +149,8 @@ def main(serial_if: str):
             log("INFO", "Interruption utilisateur, fermeture en cours")
             close_connections()
             break
+        except ConnectionResetError:
+            log("ERROR", "Connexion reseau reinitialisee par le pair")
         except (serial.SerialException, OSError) as exc:
             log("ERROR", f"Connexion serie perdue: {exc}")
             try:
